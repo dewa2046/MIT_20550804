@@ -1,0 +1,59 @@
+ALTER TABLE BOCATM.ATM_STATUS_NOW
+ DROP PRIMARY KEY CASCADE;
+
+DROP TABLE BOCATM.ATM_STATUS_NOW CASCADE CONSTRAINTS;
+
+CREATE TABLE BOCATM.ATM_STATUS_NOW
+(
+  STATION      VARCHAR2(10 BYTE),
+  ERR_CODE     VARCHAR2(50 BYTE),
+  FLT_COUNT    INTEGER,
+  CRITICALITY  INTEGER,
+  LAST_UPDATE  DATE
+)
+TABLESPACE USERS
+PCTUSED    0
+PCTFREE    10
+INITRANS   1
+MAXTRANS   255
+STORAGE    (
+            INITIAL          64K
+            NEXT             1M
+            MINEXTENTS       1
+            MAXEXTENTS       UNLIMITED
+            PCTINCREASE      0
+            BUFFER_POOL      DEFAULT
+           )
+LOGGING 
+NOCOMPRESS 
+NOCACHE
+NOPARALLEL
+MONITORING;
+
+COMMENT ON COLUMN BOCATM.ATM_STATUS_NOW.ERR_CODE IS '4 Cst,RP,PP,CA,CR,STAT,STATE , DDC - (CST - 0-Ok,1-low,2-out,9-fault , 5 Not Present/RP - 0-ok,1-low,2-out,3-fault/PP - 0,9 OK , 1-communication error/MD ATM - 0-OK,1-fault,2-money left in atm drawer/MD CRM - 0,1-OK,3-fault/CR - 0-ok,1-fault),NDC - (CST - 0- not present,1- OK , 2-low ,3 - out/RP - 3-paperout+fatal error, 2-low , 1-OK/PP - 4 fault,0-ok/MD - 100-ok,140-fault,440-reject bin overfill/CR - 0-ok,4-fault)';
+
+
+
+CREATE UNIQUE INDEX BOCATM.ATM_STATUS_NOW_PK ON BOCATM.ATM_STATUS_NOW
+(STATION)
+LOGGING
+TABLESPACE USERS
+PCTFREE    10
+INITRANS   2
+MAXTRANS   255
+STORAGE    (
+            INITIAL          64K
+            NEXT             1M
+            MINEXTENTS       1
+            MAXEXTENTS       UNLIMITED
+            PCTINCREASE      0
+            BUFFER_POOL      DEFAULT
+           )
+NOPARALLEL;
+
+
+ALTER TABLE BOCATM.ATM_STATUS_NOW ADD (
+  CONSTRAINT ATM_STATUS_NOW_PK
+  PRIMARY KEY
+  (STATION)
+  USING INDEX BOCATM.ATM_STATUS_NOW_PK);
