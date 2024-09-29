@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--refresh every 10min-->
+        <meta http-equiv="refresh" content="600">         
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+    </head>
+    <body onload=onPageLoad()>
+
+        <div class="se-pre-con"></div>
+        <div class="topnav"> </div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Cash Details</h1>
+        <div class="feedback-w3layouts">   
+
+            <label onclick="refresh()" style="font-size: 25px;float: right;padding-left: 1em;margin-top: 5px;" title="Refresh"><i class="fa fa-refresh" aria-hidden="true"></i></label>
+            <input type="text" id="myInput" onkeyup="initializeTableFilter('atmstatus', 'myInput')" placeholder="Search..." title="Type a ATM or Location">
+
+            <div class="clear"> </div>
+
+            <div class="container">
+
+                <table class="fixed_header table-bordered" id="atmcash" style="overflow-x:auto;">
+                    <thead>
+                        <tr>
+                            <!--<th>NO</th>-->
+                            <th title="Station Name">ATM</th>
+                            <th title="Branch Code">BR CODE</th>
+                            <th title="Location">LOCATION</th>                            
+                            <th title="Last Updated Date & Time">D/T</th>
+                            <th title="Cassette 1">Hopper</th>
+                            <th title="Cassette 2">CST2</th>
+                            <th title="Cassette 3">CST3</th>
+                            <th title="Cassette 4">CST4</th>
+                            <th title="Receipt Printer">R/P</th>
+                            <th title="Pin Pad">P/P</th>
+                            <th title="Money Drawer/Curruncy Acceptor">M/D,C/A</th>
+                            <th title="Card Reader">C/R</th>
+                            <th title="STAT">STAT</th>
+                            <th title="STATE">STATE</th>
+                            <th title="Other Details">DETAILS</th>
+                            <!--                            <th title="Cassette Denomination">CST INFO</th>-->
+                            <!--                            <th title="Last Sent SMS">SMS</th>                            
+                                                        <th title="Station Name">CONTACT</th>-->
+                        </tr>
+                    </thead>
+                    <tbody id="atmcashbody">
+
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Services.js"></script>
+
+    </body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <!--// Stylesheets -->
+        <!--fonts-->        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+
+        <script>
+
+            //Load Modal HTML to modelLoad Div
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+
+            async function setLogin() {
+                try {
+                    var canCheck = "true";
+                    var user = $('#uName').val().trim().toUpperCase();
+
+                    if (!user) {
+                        user = " ";
+                        canCheck = "false";
+                    }
+
+                    var pwd = $('#pwd').val();
+                    if (!pwd) {
+                        pwd = " ";
+                        canCheck = "false";
+                    }
+
+                    if (canCheck == 'true') {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        var arrayrecord_data = [user, pwd];
+                        checkLogin(arrayrecord_data);
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            function reurnLogin(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+
+                    if (size > 0) {
+
+                        if (unit[0]["RESULT"] == 'INACTIVE') { // user inactive
+                            alertBox('&#10060 User Inactive. Contact Admin!');
+
+                        } else if (unit[0]["RESULT"] == 'NEW') { // for newly created
+                            sessionStorage.setItem("UName", $('#uName').val().toUpperCase());
+                            sessionStorage.setItem("UId", unit[0]["USER_ID"]);
+                            window.location = "ChangePassword.html";
+                        } else if (unit[0]["RESULT"] == 'EXPIRED') { // for password expired after 30 days
+                            sessionStorage.setItem("UName", $('#uName').val().toUpperCase());
+                            sessionStorage.setItem("UId", unit[0]["USER_ID"]);
+                            window.location = "ChangePassword.html";
+                        } else {
+                            sessionStorage.setItem("UName", $('#uName').val().trim().toUpperCase());
+                            sessionStorage.setItem("UId", unit[0]["USER_ID"]);
+                            sessionStorage.setItem("ULvl", unit[0]["USER_LVL"]);
+                            sessionStorage.setItem("UBr", unit[0]["USER_BR"]);
+
+                            var arrayrecord_data = [unit[0]["USER_LVL"]];
+//                            alertBox(unit[0]["USER_ID"]);
+                            checkAlowedFunc(arrayrecord_data);
+                        }
+
+                    } else {
+                        alertBox('&#10060 Invalid Credentials');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            function reurnAllowedFunc(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+//                    var uType = sessionStorage.getItem('UType');
+                    if (size > 0) {
+                        var func = "";
+                        for (var i = 0; i < size; i++) {
+                            func += unit[i]["FUN_ID"] + ',';
+                        }
+                        func = func.substring(0, func.length - 1);
+
+                        sessionStorage.setItem("AllowedFunc", func);
+                        window.location = "index.html";
+
+                    } else {
+                        alertBox('&#10060 No Functions Allocated.\nPlease Contact Admin');
+                    }
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+        </script>
+
+        <script>
+            history.forward();
+        </script>
+
+    </head>
+    <body>
+        <div class="feedback-w3layouts" id="mainDiv" style="margin-top: 100px;">  
+            <!-- Load Modal.html -->
+            <div id="modelLoad"></div>
+
+            <h1> <img src="images/atmLogo.png" style="width: 50px"> ATM INFO SYSTEM </h1>
+
+            <form method="POST" id="LoginForm" onsubmit="return false;">
+                <fieldset class="scheduler-border">
+                    <legend class="scheduler-border">Login</legend>
+                    <div class="clear"> </div>
+                    <div class="form-group">
+                        <input placeholder="Username" name="username" type="text" id="uName" required>
+                        <!--<label id="lblUserNameErr" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                    </div>
+
+                    <div class="form-group">
+                        <input placeholder="Password" name="password" type="password" id="pwd" required>    
+                        <!--<label id="lblPwdErr" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                    </div>
+
+                    <div class="clear"> </div>
+
+                    <div class="form-group" style="float:left">
+                        <input type="checkbox" onclick="showPwd('pwd')"> Show Password
+                    </div>
+
+                    <input type="submit" id="login" value="Login" onclick="setLogin()" style="width: 100%;">
+
+                </fieldset>
+            </form>
+        </div>
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+
+    </body>
+</html>

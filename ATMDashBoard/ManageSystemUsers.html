@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    sessionStorage.removeItem("UserFunc");
+                    sessionStorage.removeItem("userIdFunc");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        getSystemUsers();
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            function returnUsers(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+                var imgEditUser = "images/edituser.png";
+                var imgEditUserFunc = "images/edituserfunc.png";
+                var imgResetUser = "images/resetpwd.png";
+
+
+                try {
+                    var inputContainer = document.getElementById("SystemUsersbody");
+                    for (var i = 0; i < size; i++) {
+                        var row1 = document.createElement("tr");
+                        var td1 = document.createElement("td");
+                        var td1Text = document.createTextNode(i + 1);
+//                        td1.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                        td1.appendChild(td1Text);
+                        row1.appendChild(td1);
+
+                        var td2 = document.createElement("td");
+                        var td2Text = document.createTextNode(unit[i]["USER_NAME"]);
+                        td2.style.cssText = "text-align: left";
+//                        td2.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                        td2.appendChild(td2Text);
+                        row1.appendChild(td2);
+
+                        var td3 = document.createElement("td");
+                        var FIRST_NAME = "";
+                        if (unit[i]["FIRST_NAME"]) {
+                            FIRST_NAME = unit[i]["FIRST_NAME"];
+                        }
+                        var td3Text = document.createTextNode(FIRST_NAME);
+                        td3.style.cssText = "text-align: left";
+                        td3.appendChild(td3Text);
+                        row1.appendChild(td3);
+
+                        var td4 = document.createElement("td");
+                        var LAST_NAME = "";
+                        if (unit[i]["LAST_NAME"]) {
+                            LAST_NAME = unit[i]["LAST_NAME"];
+                        }
+                        var td4Text = document.createTextNode(LAST_NAME);
+                        td4.style.cssText = "text-align: left";
+                        td4.appendChild(td4Text);
+                        row1.appendChild(td4);
+
+                        var td5 = document.createElement("td");
+                        var Branch = "";
+                        if (unit[i]["BR_NAME"]) {
+                            Branch = unit[i]["BR_NAME"];
+                        }
+                        var td5Text = document.createTextNode(Branch);
+                        td5.style.cssText = "text-align: left";
+                        td5.appendChild(td5Text);
+                        row1.appendChild(td5);
+
+                        var td6 = document.createElement("td");
+                        var STATUS = "";
+                        var statusStyle = "border-radius:3px;border:none;color:#ffffff;padding:5px;";
+                        if (unit[i]["USER_STATUS"] == '1') {
+                            STATUS = "ACTIVE";
+                            statusStyle += "background:#37d337;";
+                        } else if (unit[i]["USER_STATUS"] == '0') {
+                            STATUS = "INACTIVE";
+                            statusStyle += "background:#ff0000;";
+                        }
+
+//                        var button = document.createElement("button");
+                        const span = document.createElement('span');
+                        span.textContent = STATUS;
+                        span.style = statusStyle;
+                        td6.appendChild(span);
+                        row1.appendChild(td6);
+
+                        var email = "";
+                        if (unit[i]["USER_EMAIL"]) {
+                            email = unit[i]["USER_EMAIL"];
+                        }
+//
+                        var td7 = document.createElement("td");
+                        var a7 = document.createElement('a');
+//                        var img7 = document.createElement("img");
+                        var iconElement = document.createElement("i");
+                        a7.setAttribute('href', "EditUserDetails.html");
+                        var valEdit = unit[i]["USER_ID"] + "~" + unit[i]["USER_NAME"] + "~" + FIRST_NAME + "~" + LAST_NAME + "~" + unit[i]["USER_BRANCH"] + "~" + unit[i]["BR_NAME"] + "~" +
+                                unit[i]["USER_LEVEL"] + "~" + unit[i]["LEVEL_DESC"] + "~" + unit[i]["USER_MOB_NO"] + "~" + email + "~" + unit[i]["USER_STATUS"];
+                        a7.setAttribute('value', valEdit);
+                        a7.setAttribute('onclick', 'getUserEdit(this)');
+//                        img7.setAttribute('src', imgEditUser);
+//                        img7.setAttribute('title', "Edit User");
+//                        a7.appendChild(img7);
+                        a7.setAttribute('title', "Edit User");
+                        iconElement.className = "fa fa-edit";
+                        iconElement.style.cssText = "font-size: 1.5em;";
+                        a7.appendChild(iconElement);
+                        td7.appendChild(a7);
+                        row1.appendChild(td7);
+
+                        var td9 = document.createElement("td");
+                        var a9 = document.createElement('a');
+//                        var img9 = document.createElement("img");
+                        var iconElement = document.createElement("i");
+                        a9.setAttribute('href', "#!");
+                        a9.setAttribute('value', valEdit);
+                        a9.setAttribute('onclick', 'getResetPwd(this)');
+//                        img9.setAttribute('src', imgResetUser);
+//                        img9.setAttribute('title', "Reset User Password");
+//                        a9.appendChild(img9);
+                        a9.setAttribute('title', "Reset User Password");
+                        iconElement.className = "fa fa-unlock-alt";
+                        iconElement.style.cssText = "font-size: 1.5em;";
+                        a9.appendChild(iconElement);
+                        td9.appendChild(a9);
+                        row1.appendChild(td9);
+
+                        inputContainer.appendChild(row1);
+
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function getUserEdit(e) {
+                try {
+                    var userDet = e.getAttribute('value');
+                    sessionStorage.setItem("userDet", userDet);
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+            let resetUserId = '';
+            function getResetPwd(e) {
+                try {
+                    var resetUser = e.getAttribute('value');
+                    resetUserId = resetUser.split('~')[0];
+                    var resetUserName = resetUser.split('~')[1];
+
+                    alertBoxConfirm('&#9889 Do you want to reset password of ' + resetUserName + '? </br> Password will be reset to User Name');
+                    $('#yesbtn').on("click", function () {
+                        var arrayrecord_data = [resetUserId, sessionStorage.getItem("UId"), resetUserName];
+                        resetPassword(arrayrecord_data);
+                    });
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function returnResetPassword(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == 1) {
+                            alertBox('&#9989 Password Reset!', 's');
+                        } else {
+                            alertBox('Error in Reset!', 'e');
+                        }
+                    } else {
+                        alertBox('Error in Reset!', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+        </script>
+
+        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+        </script>
+
+
+        <style>
+            /*            tr:nth-child(even) {background-color: #7da52a;}
+                        tr:nth-child(odd) {background-color: #92C428;}*/
+            tr:nth-child(even) {
+                /*background-color: #e5e5e575;*/
+            }
+            tr:nth-child(odd) {
+                /*background-color: #8cbce6;*/
+            }
+
+            tr:hover {
+                background-color: #e5e5e575;
+            }
+
+        </style>
+
+
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--         Modal 
+                <div class="modal fade" id="myModal" role="dialog">
+                    <div class="modal-dialog">
+                         Modal content
+                        <div class="modal-content" id="modalContent">                        
+                            <div class="modal-body">
+                                <p id="modal_body"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal" id="okbtn">Okay</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> Manage System Users</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <div class="feedback-w3layouts">
+
+            <input type="text" id="myInput" onkeyup="initializeTableFilter('SystemUsers', 'myInput')" placeholder="Search..." 
+                   title="Type a User Name/First Name/Last Name">
+
+            <div class="container" >
+                <table class="fixed_header table table-bordered" id="SystemUsers" style="overflow-x:auto;">
+                    <thead>        
+                        <tr>
+                            <th>NO</th>
+                            <th>USER NAME</th>
+                            <th>FIRST NAME</th>
+                            <th>LAST NAME</th>
+                            <th>BRANCH</th>                            
+                            <th>STATUS</th>
+                            <th colspan="3">EDIT</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="SystemUsersbody">
+
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+
+
+</html>

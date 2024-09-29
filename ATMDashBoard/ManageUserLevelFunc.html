@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        var arrayrecord_data = ['ManageUserLevel'];
+                        getUserLvl(arrayrecord_data);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            });
+
+            //load User Level
+            function loadUserLvl_ManageUserLevel(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("user_lvl");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["LEVEL_DESC"];
+                        option.value = unit[i]["USER_LEVEL"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            async function getFunc(val) {
+                try {
+                    $(".se-pre-con").fadeIn(2000);
+                    await sleep(1000);
+                    getAllUserFunc();
+
+                    var arrayrecord_data = [val.trim()];
+                    getUserLvlFunc(arrayrecord_data);
+                    $(".se-pre-con").fadeOut("slow");
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            let list = new Array;
+
+// load all functions
+            function returnAllUserFunc(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+
+                try {
+                    $("#editUserFuncbody").empty();
+                    var divtbl = document.getElementById("divTable");
+                    divtbl.style.display = "block";
+//                    var divAdd = document.getElementById("divAddNew");
+//                    divAdd.style.display = "none";
+                    var inputContainer = document.getElementById("editUserFuncbody");
+                    for (var i = 0; i < size; i++) {
+                        var row1 = document.createElement("tr");
+                        var td1 = document.createElement("td");
+                        var td1Text = document.createTextNode(i + 1);
+                        td1.style.cssText = "text-align: left;padding: 5px;";
+                        td1.appendChild(td1Text);
+                        row1.appendChild(td1);
+
+                        var td1a = document.createElement("td");
+                        var td1aText = document.createTextNode(unit[i]["FUN_NAME"]);
+                        td1a.style.cssText = "text-align: left;padding: 5px;";
+                        td1a.appendChild(td1aText);
+                        row1.appendChild(td1a);
+
+                        var td2 = document.createElement("td");
+                        var td2Text = document.createTextNode(unit[i]["FUN_DESC"]);
+                        td2.style.cssText = "text-align: left;padding: 5px;";
+                        td2.appendChild(td2Text);
+                        row1.appendChild(td2);
+
+                        var td3 = document.createElement("td");
+                        var chk = document.createElement('input');
+                        chk.setAttribute('type', 'checkbox');
+                        chk.setAttribute('value', unit[i]["FUN_ID"]);
+                        chk.setAttribute('id', unit[i]["FUN_ID"]);
+                        chk.setAttribute('name', 'chk');
+                        chk.setAttribute('onclick', 'checkThis(this)');
+                        td3.appendChild(chk);
+                        row1.appendChild(td3);
+
+                        inputContainer.appendChild(row1);
+
+                        list.push(unit[i]["FUN_ID"] + "~" + unit[i]["FUN_NAME"]);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function checkThis(e2) {
+                try {
+                    var val = e2.getAttribute('value');
+                    var valtxt = "";
+                    var dotArr = new Array;
+                    var funArr = new Array();
+// get function name
+                    if (document.getElementById(val).checked == true) {
+                        for (var i = 0; i < list.length; i++) {
+                            var name = list[i];
+                            if (name.startsWith(val + "~")) {
+                                valtxt = name.split("~")[1];
+                                break;
+                            }
+                        }
+//get positions of dots of function name                        
+                        if (valtxt.includes(".")) {
+                            for (var i = 0; i < valtxt.length; i++) {
+                                if (valtxt[i] === ".")
+                                    dotArr.push(i);
+                            }
+//get function names separatrd by dots                            
+                            for (var i = 0; i < dotArr.length; i++) {
+                                funArr.push(valtxt.substring(0, dotArr[i]));
+                            }
+//checked separate functions                            
+                            for (var i = 0; i < list.length; i++) {
+                                for (var j = 0; j < funArr.length; j++) {
+                                    if (list[i].endsWith(funArr[j])) {
+                                        document.getElementById(list[i].split("~")[0]).checked = true;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+// load only selected user allowed functions
+            function returnUserLvlFunction(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+
+                try {
+                    document.getElementById("userLvlDesc").value = $("#user_lvl option:selected").text();
+                    if (size > 0) {
+                        for (var i = 0; i < size; i++) {
+                            document.getElementById(unit[i]["FUN_ID"]).checked = true;
+                        }
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+//update the user functions
+            function updateFunctions() {
+                try {
+
+                    alertBoxConfirm('&#9203 Do you want to update?');
+
+                    $('#yesbtn').on("click", function () {
+//                        alert('ssss');
+                        var canInsert = "true";
+                        var userLvlDesc = $('#userLvlDesc').val().trim().toUpperCase();
+                        if (!userLvlDesc) {
+                            canInsert = "false";
+                            alertBox('&#10060 User Group Can\'t\  Empty');
+                        }
+                        if (canInsert == 'true') {
+                            var Selectedfunc = "";
+                            $("input:checkbox[name=chk]:checked").each(function () {
+                                Selectedfunc += $(this).attr("id").trim() + ",";
+//                        alert("Id: " + $(this).attr("id") + " Value: " + $(this).val());
+                            });
+                            Selectedfunc = Selectedfunc.substring(0, Selectedfunc.length - 1);
+
+                            var arrayrecord_data = [$('#user_lvl').val(), Selectedfunc, sessionStorage.getItem("UId"), userLvlDesc];
+                            updateUserFunc(arrayrecord_data);
+                        }
+
+                    });
+
+//                    
+
+//                    if (confirm('Do you want to update?')) {
+//                        var Selectedfunc = "";
+//                        $("input:checkbox[name=chk]:checked").each(function () {
+//                            Selectedfunc += $(this).attr("id").trim() + ",";
+////                        alert("Id: " + $(this).attr("id") + " Value: " + $(this).val());
+//                        });
+//                        Selectedfunc = Selectedfunc.substring(0, Selectedfunc.length - 1);
+//
+//                        var arrayrecord_data = [sessionStorage.getItem("userIdFunc"), Selectedfunc, sessionStorage.getItem("UId")];
+//                        updateUserFunc(arrayrecord_data);
+//
+//                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            // get result of update functions
+            function returnUserFunctionUpdate(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == 1) {
+                            alertBox('&#9989 Functions Updated', 's');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                            //refresh after 2sec
+//                            window.setTimeout(function () {
+//                                window.location.reload();
+//                            }, 5000);
+
+                        } else if (unit[0]["RESULT"] == 0) {
+                            alertBox('Error in Updating!', 'e');
+                        } else if (unit[0]["RESULT"] == -1) {
+                            alertBox('No Functions Allocated!', 'e');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                        }
+
+                    } else {
+                        alertBox('Error in Updating!', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+
+
+        </script>
+
+
+        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+            function resetPage() {
+                location.reload();
+            }
+
+            function addNewUserLvl() {
+                try {
+
+                    document.getElementById("myModalAddNew").style.textAlign = "left";
+                    $('#myModalAddNew').modal({show: true});
+                    $('#myModalAddNew').modal(clearInputValue());
+
+//                    var divtbl = document.getElementById("divTable");
+//                    divtbl.style.display = "none";
+
+                    var lblReq = document.getElementById("lblReq");
+                    lblReq.style.display = "none";
+                    var groupDesc = document.getElementById("newUserLvlDesc").value;
+                    groupDesc.value = ' ';
+
+                    var okButton = document.getElementById("addbtn");
+                    $('#addbtn').on("click", function () {
+                        var newUserGroup = $('#newUserLvlDesc').val().trim().toUpperCase();
+                        var canInsert = true;
+
+                        if (!newUserGroup) {
+                            newUserGroup = "";
+                            canInsert = "false";
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required";
+                            okButton.removeAttribute("data-dismiss");
+
+                        } else {
+                            if (isValueInDropDown(newUserGroup) == true) {
+                                lblReq.style.display = "block";
+                                lblReq.innerText = "* Already Exists";
+                                okButton.removeAttribute("data-dismiss");
+                                canInsert = "false";
+                            } else {
+                                lblReq.style.display = "none";
+                                okButton.setAttribute("data-dismiss", "modal");
+                                canInsert = "true";
+                            }
+
+                            if (canInsert == "true") {
+                                var arrayrecord_data = [newUserGroup, sessionStorage.getItem("UId")];
+                                addNewUserGroup(arrayrecord_data);
+                            }
+
+                        }
+
+                    });
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+            function clearInputValue() {
+                var inputField = document.getElementById("newUserLvlDesc");
+                inputField.value = ""; // Set input value to empty string
+            }
+
+            // Function to check if a value exists in the drop-down options
+            function isValueInDropDown(value) {
+
+                var dropDown = document.getElementById("user_lvl");
+                for (var i = 1; i < dropDown.options.length; i++) {
+                    if (dropDown.options[i].textContent.trim().toUpperCase() === value.trim().toUpperCase()) {//                        
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // get result of add new user group
+            function returnAddNewUserGroup(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == 1) {
+                            alertBox('&#9989 New User Group Added', 's');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                        } else if (unit[0]["RESULT"] == 0) {
+                            alertBox('Error in Updating!', 'e');
+                        }
+
+                    } else {
+                        alertBox('Error in Updating!', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+        </script>
+
+        <style>
+            /*            tr:nth-child(even) {background-color: #7da52a;}
+                        tr:nth-child(odd) {background-color: #92C428;}*/
+            tr:nth-child(even) {
+                /*background-color: #b4dbf1;*/
+            }
+            tr:nth-child(odd) {
+                /*background-color: #8cbce6;*/
+            }
+
+            tr:hover {
+                background-color: #3292bfc2;
+            }
+
+        </style>
+
+
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> Manage User Group Functions</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <div class="feedback-w3layouts">
+
+            <div class="row">
+
+                <!--if need to add or edit - not completed-->
+                <!--                <label for="lblAddNew" style="float:right;padding-left:20px;" ><a href="#" onclick="addNewUserLvl()">
+                                        <img src="images/edituser.png" title="Add New User Level"></a></label>-->
+                <label for="lblAddNew" style="float:right;padding-left:20px;" ><a href="#" onclick="addNewUserLvl()" title="Add New User Level">
+                        <i class="fa fa-user-plus" aria-hidden="true" style="font-size:2em;"></i></a></label>
+
+                <label for="lblUserLevel" style="float:left;" >Select User Group</label>
+                <div class="input-group">
+                    <select class="form-control" id="user_lvl" style="float: left;width: 200px;margin-left: 20px;" onchange="getFunc(this.value)">
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+            </div>
+            <div class="clear"></div> 
+            <hr>
+
+            <div class="container">
+                <div id="divTable" style="display: none;">
+
+                    <div><div class="left-grid">
+                            <label> User Group : <i>(*If need to change)</i></label>
+                        </div>
+                        <input type="text" id="userLvlDesc" style="max-width: fit-content;margin-left: 5px;margin-bottom: 15px;text-transform:uppercase"/>
+                    </div>
+
+
+                    <div class="clear"> </div>
+
+                    <table class="fixed_header table table-bordered" id="editUserFunc" style="overflow-x:auto;">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>FUNCTION ID</th>
+                                <th>FUNCTION</th>
+                                <th>SELECT</th>                            
+                            </tr>
+                        </thead>
+                        <tbody id="editUserFuncbody">
+
+
+                        </tbody>
+                    </table>
+                    <div class="clear"></div> 
+                    <input type="button" value="Reset" onclick="resetPage()" >
+                    <input type="button" value="Update" onclick="updateFunctions()">
+                </div>
+
+                <div class="modal fade" id="myModalAddNew" role="dialog" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content" id="modalContentConfirm">                        
+                            <div class="modal-body" style="padding: 25px;">
+                                <label> New User Group : </label>
+                                <input type="text" id="newUserLvlDesc" style="max-width: fit-content;margin-left: 5px;text-transform:uppercase" />
+                                <label id="lblReq" style="font-size:smaller;padding-left:250px;padding-top: 10px;color:red;display: none;"></label>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancelbtn" style="width: 48%;">CANCEL</button>
+                                <button type="button" class="btn btn-default"  id="addbtn" style="width: 48%;">ADD</button>                        
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+
+
+</html>

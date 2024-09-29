@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--refresh every 10min-->
+        <meta http-equiv="refresh" content="600">         
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+        <script>
+            async function onPageLoad() {
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getProvinceDetails();
+                        getBranchDetails();
+                        getATMVenders();
+                        getATMModels();
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            //*** load Branch ***
+            function loadBranchDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("branch");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+//                        option.text = unit[i]["BR_CODE"] + " - " + unit[i]["BR_NAME"];
+                        option.text = unit[i]["BR_NAME"] + "( " + unit[i]["BR_CODE"] + " )";
+                        option.value = unit[i]["BR_CODE"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            //*** load Provinces ***
+            function loadProvinceDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("province");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+//                        option.text = unit[i]["BR_CODE"] + " - " + unit[i]["BR_NAME"];
+                        option.text = unit[i]["PROVINCE_NAME"];
+                        option.value = unit[i]["PROVINCE_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            //*** load Vender Details ***
+            function loadATMVenders(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("vender");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["VENDER_NAME"];
+                        option.value = unit[i]["VENDER_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            //*** load ATM Models ***
+            function loadATMModels(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("model");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["MODEL_NAME"];
+                        option.value = unit[i]["MODEL_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            function getReport() {
+
+                try {
+                    var qry = " AND ";
+
+                    if ($('#province').val()) {
+                        qry += "p.PROVINCE_ID = " + $('#province').val() + " AND ";
+                    }
+                    if ($('#branch').val()) {
+                        qry += "a.BR_CODE = " + $('#branch').val() + " AND ";
+                    }
+                    if ($('#vender').val()) {
+                        qry += "a.VENDER = " + $('#vender').val() + " AND ";
+                    }
+                    if ($('#model').val()) {
+                        qry += "a.MODEL = " + $('#model').val() + " AND ";
+                    }
+                    if ($('#emv').val()) {
+                        qry += "a.EMV = " + $('#emv').val() + " AND ";
+                    }
+                    if ($('#recycler').val()) {
+                        qry += "a.RECYCLER = " + $('#recycler').val() + " AND ";
+                    }
+                    if ($('#os').val()) {
+                        qry += "a.OS = '" + $('#os').val() + "' AND ";
+                    }
+                    if ($('#remote').val()) {
+                        qry += "a.REMOTE = " + $('#remote').val() + " AND ";
+                    }
+                    if ($('#divtype').val()) {
+                        qry += "a.DIV_TYPE = '" + $('#divtype').val() + "' AND ";
+                    }
+                    if ($('#overseas').val()) {
+                        qry += "a.OVERSEAS = " + $('#overseas').val() + " AND ";
+                    }
+
+                    sessionStorage.setItem("ATMInfoReport", qry);
+
+                    window.open("ATMInformationReport.html", 'targetWindow_' + qry,
+                            `toolbar=no,
+                                            location=no,
+                                            status=no,
+                                            menubar=no,
+                                            scrollbars=yes,
+                                            resizable=no,
+                                            width=1500px,
+                                            height=800px`);
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+
+                }
+
+            }
+
+        </script>
+    </head>
+    <body onload="onPageLoad()">
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Information</h1>
+        <div class="feedback-w3layouts"> 
+
+            <div class="container-fluid" id="mainDiv">
+                <table  class="fixed_header table-bordered" id="tblAtmInfo" style="overflow-x:auto;text-align: left;" >
+                    <tr>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> PROVINCE </td>
+                        <td><select class="form-control" id="province">
+                                <option value="" selected>Skip...</option>				
+                            </select>
+                        </td>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> BRANCH </td>
+                        <td><select class="form-control" id="branch">
+                                <option value="" selected>Skip...</option>				
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> VENDER </td>
+                        <td><select class="form-control" id="vender">
+                                <option value="" selected>Skip...</option>				
+                            </select>
+                        </td>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> MODEL </td>
+                        <td><select class="form-control" id="model">
+                                <option value="" selected>Skip...</option>				
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> EMV </td>
+                        <td><select class="form-control" id="emv">
+                                <option value="" selected>Skip...</option>
+                                <option value="1" >Yes</option>
+                                <option value="0" >No</option>
+                            </select>
+                        </td>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> RECYCLER </td>
+                        <td><select class="form-control" id="recycler">
+                                <option value="" selected>Skip...</option>
+                                <option value="1" >Yes</option>
+                                <option value="0" >No</option>				
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> OPERATING SYSTEM </td>
+                        <td><select class="form-control" id="os">
+                                <option value="" selected>Skip...</option>
+                                <option value="WIN7">WINDOWS 7</option>
+                                <option value="WIN10">WINDOWS 10</option>	
+                                <option value="WIN11">WINDOWS 11</option>
+                            </select>
+                        </td>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> REMOTE </td>
+                        <td><select class="form-control" id="remote">
+                                <option value="" selected>Skip...</option>
+                                <option value="1" >Yes</option>
+                                <option value="0" >No</option>				
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> DEVICE TYPE </td>
+                        <td><select class="form-control" id="divtype">
+                                <option value="" selected>Skip...</option>
+                                <option value="ATM" >ATM</option>
+                                <option value="CDM" >CDM </option>
+                                <option value="CRM" >CRM</option>
+                            </select>
+                        </td>
+                        <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> OVERSEAS </td>
+                        <td><select class="form-control" id="overseas">
+                                <option value="" selected>Skip...</option>
+                                <option value="1" >Yes</option>
+                                <option value="0" >No</option>				
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align: center;"><input type="submit" id="viewReport" value="View Report" onclick=" return getReport();" ></td>                     
+
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Reports.js"></script>
+    </body>
+</html>

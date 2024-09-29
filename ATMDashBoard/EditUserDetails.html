@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        var arrayrecord_data = ['EditUser'];
+                        getUserLvl(arrayrecord_data);
+                        getUserBranch();
+
+                        var data = sessionStorage.getItem("userDet").split('~');
+                        document.getElementById('userName').value = data[1];
+                        document.getElementById('firstName').value = data[2];
+                        document.getElementById('lastName').value = data[3];
+                        document.getElementById("user_lvl").value = data[6];
+                        document.getElementById("user_branch").value = data[4];
+                        document.getElementById("mobno").value = data[8];
+                        document.getElementById("email").value = data[9];
+//                        document.getElementById("user_status").value = data[10];
+                        if (data[10] == '1') {
+                            document.getElementById('user_status').checked = true;
+                        } 
+
+                        sessionStorage.setItem("userIdDet", data[0]);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            //load User Level
+            function loadUserLvlEdit(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("user_lvl");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["LEVEL_DESC"];
+                        option.value = unit[i]["USER_LEVEL"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            //load User Branch
+            function loadBranch(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("user_branch");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+//                        option.text = unit[i]["BR_CODE"] + " - " + unit[i]["BR_NAME"];
+                        option.text = unit[i]["BR_NAME"];
+                        option.value = unit[i]["BR_CODE"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            function updateDetails() {
+
+                try {
+                    var canInsert = "true";
+
+                    var userName = $('#userName').val().trim().toUpperCase();
+
+                    var firstName = $('#firstName').val().trim().toUpperCase();
+                    if (!firstName) {
+                        canInsert = "false";
+                    }
+
+                    var lastName = $('#lastName').val().trim().toUpperCase();
+
+                    var userLvl = $('#user_lvl').val();
+                    if (!userLvl) {
+                        canInsert = "false";
+                    }
+
+                    var userBr = $('#user_branch').val();
+                    if (!userBr) {
+                        canInsert = "false";
+                    }
+
+                    var userMob = $('#mobno').val();
+                    if (!userMob) {
+                        canInsert = "false";
+                    } else if (!validatePhoneNumber(userMob)) {
+                        alertBox('&#10060 Invalid Phone Number');
+                        canInsert = "false";
+                    }
+
+                    var email = $('#email').val();
+                    if (email) {
+                        if (!validateEmail(email)) {
+                            alertBox('&#10060 Invalid Email');
+                            canInsert = "false";
+                        }
+                    }
+
+                    var status = 0;
+                    if (document.getElementById('user_status').checked) {
+                        status = 1;
+                    }
+                    
+
+                    if (canInsert == 'true') {
+                        var arrayrecord_data = [userName, firstName, lastName, userLvl, userBr, userMob, email, status, sessionStorage.getItem("userIdDet"), sessionStorage.getItem("UId")];
+                        updateUserDet(arrayrecord_data);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function returnUserUpdateDet(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+
+                try {
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == '1') {
+                            alertBox('&#9989 User Details Updated', 's');
+
+                            document.getElementById('okbtn').onclick = function (e) {
+                                setBack('ManageSystemUsers.html');
+                            };
+//                            window.setTimeout(function () {
+//                                setBack('ManageSystemUsers.html');
+//                            }, 5000);
+
+                        } else {
+                            alertBox('Error in Updating', 'e');
+                        }
+                    } else {
+                        alertBox('Error in Updating', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+        </script>
+
+
+<!--        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+//select all checkboxes
+            function selectAll() {
+                var ele = document.getElementsByName('chk');
+                for (var i = 0; i < ele.length; i++) {
+                    if (ele[i].type == 'checkbox')
+                        ele[i].checked = true;
+                }
+            }
+
+//deselect all checkboxes
+            function deSelectAll() {
+                var ele = document.getElementsByName('chk');
+                for (var i = 0; i < ele.length; i++) {
+                    if (ele[i].type == 'checkbox')
+                        ele[i].checked = false;
+
+                }
+            }
+
+            function resetPage() {
+                location.reload();
+            }
+
+        </script>-->
+
+        <style>
+
+            .feedback-w3layouts input[type="text"]{
+                float: left;
+                width: auto;
+                /*border: none;*/
+                /*border-bottom: 1px dotted;*/
+                /*padding: unset;*/
+                margin-bottom: 12px;
+                /*font-weight: bold;*/
+                /*letter-spacing: 0.7px;*/
+            }
+            .feedback-w3layouts input[type="number"]{
+                float: left;
+                width: auto;
+                margin-bottom: 12px;
+            }
+
+            .feedback-w3layouts input[type="checkbox"]{
+                float: left;
+                width: auto;
+                margin-bottom: 25px;
+                /*font-weight: bold;*/
+                /*letter-spacing: 0.7px;*/
+                margin-right: 5px;
+            }
+
+        </style>
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                /*                width: 60px;
+                                height: 34px;*/
+                width: 60px;
+                height: 25px;
+            }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                /*                height: 26px;
+                                width: 26px;*/
+                height: 18px;
+                width: 18px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+
+            input:focus + .slider {
+                box-shadow: 0 0 1px #2196F3;
+            }
+
+            input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(35px);
+            }
+
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 34px;
+            }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('ManageSystemUsers.html')"> Edit User Details</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <form method="POST" id="EditUserForm" onsubmit="return false;">
+
+            <div class="feedback-w3layouts"> 
+                <div class="left-grid">
+                    <label id="lbluserName" ><i class="fa fa-user" aria-hidden="true"></i> User Name </label>
+                </div>   
+                <input type="text" id="userName" name="userName" readonly>
+                <!--            <label id="lbluserNameErro" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblfirstName"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i> First Name * </label>
+                </div>
+                <input type="text" id="firstName" name="firstName" required>
+                <!--<label id="lblfirstNameErro" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lbllastName"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i> Last Name </label>
+                </div>
+                <input type="text" id="lastName" name="lastName" >          
+                <div class="clear"> </div>     
+
+                <div class="left-grid">
+                    <label id="lbluserlvl"><i class="fa fa-user-plus" aria-hidden="true"></i> User Level * </label>
+                </div>
+                <div class="input-group">
+                    <select class="form-control" id="user_lvl" required>
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+                <div class="clear"> </div>     
+
+                <div class="left-grid">
+                    <label id="lbluserbranch"><i class="fa fa-bank" aria-hidden="true"></i> User Branch * </label>
+                </div>
+                <div class="input-group">
+                    <select class="form-control" id="user_branch" required>
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblMob"><i class="fa fa-phone-square" aria-hidden="true" ></i> Mobile No * </label>
+                </div>
+                <input type="number" id="mobno" name="mobno" required>      
+
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblEmail"><i class="fa fa-envelope" aria-hidden="true"></i> Email </label>
+                </div>
+                <input type="text" id="email" name="email" >  
+
+                <div class="clear"> </div> 
+
+                <div class="left-grid">
+                    <label id="lblstatus" ><i class="fa fa-check-square" aria-hidden="true"></i> Status * </label>
+                </div>
+                <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                    <input type="checkbox" id="user_status">
+                    <span class="slider round"></span>
+                </label>
+                <!--                <div class="input-group">
+                                    <select class="form-control" id="user_status" required>
+                                        <option value="" disabled selected>Please Select an Option</option>
+                                        <option value="1"> ACTIVE </option>
+                                        <option value="0"> INACTIVE </option>
+                                    </select>
+                                </div>-->
+
+                <!--                <span class="input-group-addon">
+                                    <input type="checkbox" name="uStatus" id="ACTIVE" value="1" onclick="checkOne(this, 'uStatus')">ACTIVE 
+                                </span>
+                                <span class="input-group-addon">
+                                    <input type="checkbox" name="uStatus" id="INACTIVE" value="0" onclick="checkOne(this, 'uStatus')">INACTIVE
+                                </span>-->
+                <!--<label id="lblstatusErro" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                <div class="clear"> </div>
+
+                <input type="submit" value="Update"  style="margin-top: 20px" onclick="updateDetails()">
+
+            </div>
+        </form>
+
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <!--        <script src="../Production/displayDates.html"></script>
+                <script src="../Production/readJournal.html"></script>
+                <script src="../Production/displayVideo.html"></script>-->
+
+    </body>
+
+
+</html>

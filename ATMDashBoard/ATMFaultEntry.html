@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+
+        <script>
+
+            async function onPageLoad() {
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+                    
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getATMforFaults();
+                        getFaults();
+                        getCreatedEntry("ALL");
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+
+            //load ATM names
+            function loadATMforFaults(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("machine");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["ATM_NAME"] + "-" + unit[i]["BR_NAME"] + "(" + unit[i]["BR_CODE"] + ")";
+                        option.value = unit[i]["ATM_NAME"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            //load Fault Types
+            function loadFaults(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var FaultSelect = document.getElementById("fault");
+                    var ActionSelect = document.getElementById("action");
+                    var ResultSelect = document.getElementById("result");
+
+
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["FAR_DESC"];
+                        option.value = unit[i]["FAR_DESC"];
+
+                        if (unit[i]["FAULT_DESC"] == 'FAULT') {
+                            FaultSelect.add(option);
+                        } else if (unit[i]["FAULT_DESC"] == 'ACTION') {
+                            ActionSelect.add(option);
+                        } else if (unit[i]["FAULT_DESC"] == 'RESULT') {
+                            ResultSelect.add(option);
+                        }
+
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+            
+            async function getStatus(val) {
+                try {
+                    $(".se-pre-con").fadeIn("slow");
+                    await sleep(500);
+                    var atm = val.trim();
+                    var arrayrecord_data = [atm];
+//                    getATMStatus(arrayrecord_data);
+//                    loadContacts(arrayrecord_data);
+                    getCreatedEntry(atm);
+                    $(".se-pre-con").fadeOut("slow");
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function loadContactsResult(jason_data) {
+
+                try {
+
+                    $("#atmcontactbody").empty();
+
+                    var inputContainer = document.getElementById("atmcontactbody");
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        for (var i = 0; i < size; i++) {
+
+                            var row1 = document.createElement("tr");
+                            var td1 = document.createElement("td");
+                            var td1Text = " ";
+                            if (unit[i]["PF"]) {
+                                td1Text = document.createTextNode(unit[i]["PF"]);
+                            } else {
+                                td1Text = document.createTextNode("___");
+                            }
+                            td1.style.cssText = "text-align: left;";
+                            td1.appendChild(td1Text);
+                            row1.appendChild(td1);
+                            var td2 = document.createElement("td");
+                            var td2Text = " ";
+                            if (unit[i]["NAME"]) {
+                                td2Text = document.createTextNode(unit[i]["NAME"]);
+                            } else {
+                                td2Text = document.createTextNode("___");
+                            }
+                            td2.style.cssText = "text-align: left;";
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+                            var td3 = document.createElement("td");
+                            var td3Text = " ";
+                            if (unit[i]["GRADE"]) {
+                                td3Text = document.createTextNode(unit[i]["GRADE"]);
+                            } else {
+                                td3Text = document.createTextNode("___");
+                            }
+                            td3.style.cssText = "text-align: left;";
+                            td3.appendChild(td3Text);
+                            row1.appendChild(td3);
+                            var td4 = document.createElement("td");
+                            var td4Text = " ";
+                            if (unit[i]["TEL_RES"]) {
+                                td4Text = document.createTextNode(unit[i]["TEL_RES"]);
+                            } else {
+                                td4Text = document.createTextNode("___");
+                            }
+                            td4.style.cssText = "text-align: left;";
+                            td4.appendChild(td4Text);
+                            row1.appendChild(td4);
+                            var td5 = document.createElement("td");
+                            var td5Text = " ";
+                            if (unit[i]["TEL_MOB"]) {
+                                td5Text = document.createTextNode(unit[i]["TEL_MOB"]);
+                            } else {
+                                td5Text = document.createTextNode("___");
+                            }
+                            td5.style.cssText = "text-align: left;";
+                            td5.appendChild(td5Text);
+                            row1.appendChild(td5);
+                            inputContainer.appendChild(row1);
+                        }
+                    } else {
+//                        alert("No ATM Details to Load");
+                        var row1 = document.createElement("tr");
+                        var td1 = document.createElement("td");
+                        td1.setAttribute("colspan", "5");
+                        var td1Text = document.createTextNode("***No Contact Details to Load***");
+                        row1.style.cssText = "background-color: #8db5ec;font-style: italic;";
+                        td1.appendChild(td1Text);
+                        row1.appendChild(td1);
+                        inputContainer.appendChild(row1);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+
+            }
+
+
+            //set details after submit
+            function createEntry() {
+
+                var canInsert = "true";
+
+                var form = document.getElementById('createFaultForm');
+                var requiredFields = form.querySelectorAll('[required]');
+
+                // Check if all required fields are filled
+                for (var i = 0; i < requiredFields.length; i++) {
+                    if (requiredFields[i].value.trim() === '') {
+                        return false; // Prevent form submission
+                    }
+                }
+
+                var machine = $('#machine').val();
+                var fault = $('#fault').val();
+                var action = $('#action').val();
+                var result = $('#result').val();
+                var remarks = $('#remarks').val();
+                if (remarks) {
+                    remarks = $('#remarks').val().trim().toUpperCase();
+                }
+
+                var arrayrecord_data = [machine, fault, action, result, remarks, sessionStorage.getItem("UId")];
+                addFaultEntry(arrayrecord_data);
+
+
+
+            }
+
+// get result of insert entry
+            function returnAddFaultEntry(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == '1') {
+                            alertBox('&#9989 New Entry Created', 's');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                        } else {
+                            alertBox('Error in Creating!');
+                        }
+                    } else {
+                        alertBox('Error in Creating!');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+//get created entries
+            function getCreatedEntry(type) {
+
+                try {
+                    var arrayrecord_data = [type];
+                    getEntryCreated(arrayrecord_data);
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+// load last 10 entries
+            function loadAllEntry(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        var divEntry = document.getElementById("entries");
+                        divEntry.style.display = "block";
+                        var inputContainer = document.getElementById("entriestbl");
+                        for (var i = 0; i < size; i++) {
+                            var row1 = document.createElement("tr");
+                            var td1 = document.createElement("td");
+                            var td1Text = document.createTextNode(unit[i]["FAULT_ENTRY_DATE"].slice(0, -2));
+                            td1.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td1.appendChild(td1Text);
+                            row1.appendChild(td1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(unit[i]["FAULT_ATM"]);
+                            td2.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+
+                            var td5 = document.createElement("td");
+                            var td5Text = document.createTextNode(unit[i]["FAULT"]);
+                            td5.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td5.appendChild(td5Text);
+                            row1.appendChild(td5);
+
+                            var td6 = document.createElement("td");
+                            var td6Text = document.createTextNode(unit[i]["ACTION"]);
+                            td6.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td6.appendChild(td6Text);
+                            row1.appendChild(td6);
+
+                            var td7 = document.createElement("td");
+                            var td7Text = document.createTextNode(unit[i]["RESULT"]);
+                            td7.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td7.appendChild(td7Text);
+                            row1.appendChild(td7);
+
+                            var td8 = document.createElement("td");
+                            var remarks = "";
+                            if (unit[i]["REMARKS"]) {
+                                remarks = unit[i]["REMARKS"];
+                            }
+                            var td8Text = document.createTextNode(remarks);
+                            td8.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td8.appendChild(td8Text);
+                            row1.appendChild(td8);
+
+                            var td9 = document.createElement("td");
+                            var td9Text = document.createTextNode(unit[i]["USER_NAME"]);
+                            td9.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td9.appendChild(td9Text);
+                            row1.appendChild(td9);
+                            inputContainer.appendChild(row1);
+                        }
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+//load entries for perticular atm
+            function loadEntryATM(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var divEntry = document.getElementById("entriesATM");
+                    if (size > 0) {
+                        $('#entriesATMtbl tr:gt(0)').remove();
+                        var atm = $('#machine').val().split("~")[0];
+                        document.getElementById("selectAtm").innerHTML = "Recent Records of ";
+                        document.getElementById("selectAtm").innerHTML = document.getElementById("selectAtm").innerHTML + " " + atm;
+                        divEntry.style.display = "block";
+                        var inputContainer = document.getElementById("entriesATMtbl");
+                        for (var i = 0; i < size; i++) {
+                            var row1 = document.createElement("tr");
+                            var td1 = document.createElement("td");
+                            var td1Text = document.createTextNode(unit[i]["FAULT_ENTRY_DATE"].slice(0, -2));
+                            td1.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td1.appendChild(td1Text);
+                            row1.appendChild(td1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(unit[i]["FAULT_ATM"]);
+                            td2.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+
+                            var td5 = document.createElement("td");
+                            var td5Text = document.createTextNode(unit[i]["FAULT"]);
+                            td5.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td5.appendChild(td5Text);
+                            row1.appendChild(td5);
+
+                            var td6 = document.createElement("td");
+                            var td6Text = document.createTextNode(unit[i]["ACTION"]);
+                            td6.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td6.appendChild(td6Text);
+                            row1.appendChild(td6);
+
+                            var td7 = document.createElement("td");
+                            var td7Text = document.createTextNode(unit[i]["RESULT"]);
+                            td7.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td7.appendChild(td7Text);
+                            row1.appendChild(td7);
+
+                            var td8 = document.createElement("td");
+                            var remarks = "";
+                            if (unit[i]["REMARKS"]) {
+                                remarks = unit[i]["REMARKS"];
+                            }
+                            var td8Text = document.createTextNode(remarks);
+                            td8.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td8.appendChild(td8Text);
+                            row1.appendChild(td8);
+
+                            var td9 = document.createElement("td");
+                            var td9Text = document.createTextNode(unit[i]["USER_NAME"]);
+                            td9.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td9.appendChild(td9Text);
+                            row1.appendChild(td9);
+                            inputContainer.appendChild(row1);
+                        }
+
+                    } else {
+                        divEntry.style.display = "none";
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+        </script>
+
+        <style>
+
+            /*            tr:nth-child(even) {
+                            background-color: #d5dadf;
+                                            background-color: #7bace9f2;
+                        }
+                        tr:nth-child(odd) {
+                            background-color: #fffffff2;
+                            background-color: #a5cbf3;
+                        }*/
+            th{
+                /*                background-color: #4aab4d;*/
+                /*2023/03/13*/
+                background-color: #003953;
+                display: table-cell;
+                vertical-align: inherit;
+                /*font-weight: bold;*/
+                border: 2px solid;
+                color:#ffffff;
+            }
+            tr:hover {
+                background-color: #3292bfc2;
+            }
+
+
+            #otherTxt{
+                font: bold 11px verdana, arial, helvetica, sans-serif ;
+                color: #dd257b;
+            }
+        </style>
+
+    </head>
+
+    <body onload=onPageLoad()>
+
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('ATMFaultEntryMain.html')"> Create ATM Fault Entry</h1>
+
+        <div class="feedback-w3layouts"> 
+            <div class="container-fluid" id="mainDiv">
+
+                <div class="col-xs-6 EcafDiv1 table-responsive">
+                    <form method="POST" id="createFaultForm" onsubmit="return false;">
+                        <h4>Create New Entry</h4>
+
+                        <div class="row">                            
+                            <div class="left-grid" id="machinelbl">
+                                <label><i class="fa fa-gears" aria-hidden="true"></i> Machine *</label>
+                            </div>   
+                            <div class="input-group">
+                                <!--                                <select class="form-control" id="machine" onchange="getStatus(this.value)">-->
+                                <select class="form-control" id="machine" onchange="getStatus(this.value)" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>
+                            <div class="clear"> </div>                           
+
+                            <div class="left-grid" id="faultlbl">
+                                <label><i class="fa fa-close" aria-hidden="true"></i> Fault *</label>
+                            </div>   
+                            <div class="input-group">
+                                <select class="form-control" id="fault" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="actionlbl">
+                                <label><i class="fa fa-hand-pointer-o" aria-hidden="true"></i> Action *</label>
+                            </div>   
+                            <div class="input-group">
+                                <select class="form-control" id="action" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="resultlbl">
+                                <label><i class="fa fa-smile-o" aria-hidden="true"></i> Result *</label>
+                            </div>   
+                            <div class="input-group">
+                                <select class="form-control" id="result" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>
+                            <div class="clear"> </div>
+
+                            <div class="left-grid">
+                                <label><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Remarks </label>
+                            </div> 
+                            <textarea class="atmfaulttextarea" id="remarks" rows="2" cols="20" style="text-transform:uppercase;"></textarea>
+                            <div class="clear"> </div>
+
+                            <input type="submit" id="Search" value="Create Entry" onclick="createEntry();">
+
+                            <div class="clear"> </div>
+                        </div>
+
+                    </form>
+
+                    <!--                    <hr>
+                    
+                                        <h4 id = "conactDetailsHeader"><i class="fa fa-phone-square" aria-hidden="true"></i>Contact Details</h4>
+                    
+                    
+                                        <div class="row">
+                                            <table class="fixed_header table table-bordered" id="atmcontact">
+                    
+                                                <tr>
+                                                    <th>PF</th>
+                                                    <th>NAME</th>
+                                                    <th>GRADE</th>
+                                                    <th>RES/TEL</th>
+                                                    <th>MOB</th>
+                                                </tr>
+                    
+                                                <tbody id="atmcontactbody">
+                    
+                    
+                                                </tbody>
+                                            </table>
+                    
+                                        </div>-->
+                    <!--                    <h4>Current Status</h4>
+                                        <div class="row">
+                                            <div class="left-grid">
+                                                <label><i class="fa fa-calendar" aria-hidden="true"></i> Last Txn Updated </label>
+                                            </div> 
+                    
+                                            <label id="lastUpdate"></label>
+                                            <div class="clear"> </div>
+                    
+                                            <div class="left-grid">
+                                                <label><i class="fa fa-check-circle" aria-hidden="true"></i> Stat </label>
+                                            </div> 
+                    
+                                            <label id="ATMstat"></label>
+                                            <div class="clear"> </div>
+                    
+                                            <div class="left-grid">
+                                                <label><i class="fa fa-check-circle" aria-hidden="true"></i> State </label>
+                                            </div> 
+                    
+                                            <label id="ATMstate"></label>
+                                            <div class="clear"> </div>                       
+                    
+                                            <textarea  id="otherTxt" rows="8" cols="20" readonly></textarea>
+                                            <label id="otherTxt"></label>
+                                            <div class="clear"> </div>
+                    
+                                        </div>-->
+
+
+                </div>
+
+                <div class="col-xs-6 faultEntryDiv2 table-responsive">                   
+
+                    <div  id="entriesATM" style="display: none;">
+                        <h4 id="selectAtm" >Recent records of </h4>
+                        <table class="table table-bordered table-wrapper-scroll-y my-custom-scrollbar" id="entriesATMtbl"  style="height: auto;font-size : smaller;">
+                            <tr>
+                                <th>Created Date</th>
+                                <th>Machine ID</th>                                
+                                <th>Fault</th>
+                                <th>Action</th>
+                                <th>Result</th>
+                                <th>Remarks</th>
+                                <th>User</th>
+
+                            </tr>
+
+                        </table>
+                    </div>
+
+                    <div class="clear"> </div>
+
+                    <div id="entries" style="display: block;">
+                        <h4>Recent Records </h4>
+                        <table class="table table-bordered table-wrapper-scroll-y my-custom-scrollbar" id="entriestbl" style="font-size : smaller;">
+                            <tr>
+                                <th>Created Date</th>
+                                <th>ATM</th>
+                                <th>Fault</th>
+                                <th>Action</th>
+                                <th>Result</th>
+                                <th>Remarks</th>
+                                <th>User</th>
+
+                            </tr>
+
+                        </table>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+        </div>
+
+        <script src="../ATMDashBoard/js/Services.js"></script>       
+        <script src="../ATMDashBoard/js/Common.js"></script>
+    </body>
+</html>

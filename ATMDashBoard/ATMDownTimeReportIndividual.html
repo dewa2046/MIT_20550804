@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+        <script src="jQueryAssets/xlsx.full.min.js"></script>
+        <script src="jQueryAssets/jspdf.umd.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+//                    var queryString = decodeURIComponent(window.location.search);
+//                    queryString = queryString.substring(1);
+//                    var queries = queryString.split(",");
+//                    
+//                    var atmdesc = queries[0];
+                    var atmdesc = sessionStorage.getItem("ATMDownTime");
+                    var fromDate = sessionStorage.getItem("AllDwnFromDate");
+                    var toDate = sessionStorage.getItem("AllDwnToDate");
+
+
+//                    alert(atmdesc + "~" + fromDate + "~" + toDate);
+
+                    if (atmdesc == "cstempty") {
+                        document.getElementById('hed').innerHTML = "All Cassette Empty List ( " + fromDate + " - " + toDate + " )";
+
+                    } else if (atmdesc == "cstfault") {
+                        document.getElementById('hed').innerHTML = "All Cassette Fault List ( " + fromDate + " - " + toDate + " )";
+
+                    } else if (atmdesc == "pinfault") {
+                        document.getElementById('hed').innerHTML = "Pinpad Fault List ( " + fromDate + " - " + toDate + " )";
+
+                    } else if (atmdesc == "cardfault") {
+                        document.getElementById('hed').innerHTML = "Card Reader Fault List ( " + fromDate + " - " + toDate + " )";
+
+                    } else if (atmdesc == "currencyfault") {
+                        document.getElementById('hed').innerHTML = "Currency Acceptor Fault List ( " + fromDate + " - " + toDate + " )";
+
+                    } else if (atmdesc == "downfault") {
+                        document.getElementById('hed').innerHTML = "Network / Power Down List ( " + fromDate + " - " + toDate + " )";
+                    }
+
+                    var userBr = sessionStorage.getItem("UBr");
+                    var userLvl = sessionStorage.getItem("ULvl");
+                    var arrayrecord_data = [fromDate, toDate, atmdesc, userLvl, userBr];
+                    getDownTimeSeparate(arrayrecord_data);
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            });
+
+
+
+            function loadDownTimeSeparate(jason_data) {
+                $(".se-pre-con").fadeOut("slow");
+                var unit = jason_data.data;
+                var size = unit.length;
+//                var dwnbtn = document.getElementById("btndwnload");
+                var hrStyle = "border-top: 1px dashed #3292bfc2;margin: 0px;padding-top: 5px;";
+                var tdStyle = "text-align: left;padding: 5px; border:solid 1px;";
+
+                try {
+//                    alert(size);
+                    if (size > 0) {
+                        $("#AllDwnbody").empty();
+//                        dwnbtn.style.display = "block";
+
+                        var inputContainer = document.getElementById("AllDwnbody");
+                        for (var i = 0; i < size; i++) {
+                            var row1 = document.createElement("tr");
+
+//                            var td1 = document.createElement("td");
+//                            var td1Text = document.createTextNode(i + 1 + ".");
+//                            td1.style.cssText = tdStyle;
+//                            td1.appendChild(td1Text);
+//                            row1.appendChild(td1);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(unit[i]["ATM"]);
+                            td4.style.cssText = tdStyle;
+                            td4.appendChild(td4Text);
+                            row1.appendChild(td4);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(unit[i]["BRCODE"]);
+                            td2.style.cssText = tdStyle;
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(unit[i]["LOCAION"]);
+                            td3.style.cssText = tdStyle;
+                            td3.appendChild(td3Text);
+                            row1.appendChild(td3);
+
+
+
+                            var td4a = document.createElement("td");
+                            var td4aText = document.createTextNode(unit[i]["div"]);
+                            td4a.style.cssText = tdStyle;
+                            td4a.appendChild(td4aText);
+                            row1.appendChild(td4a);
+
+                            var td4b = document.createElement("td");
+                            var td4bText = document.createTextNode(unit[i]["vender"]);
+                            td4b.style.cssText = tdStyle;
+                            td4b.appendChild(td4bText);
+                            row1.appendChild(td4b);
+
+                            var errArr = unit[i]["err"].split("~");
+                            var td5 = document.createElement("td");
+                            for (var err = 0; err < errArr.length - 1; err++) {
+                                var td5Text = document.createTextNode(editDate(errArr[err]));
+                                var br = document.createElement("br");
+                                var hr = document.createElement("hr");
+                                hr.style = hrStyle;
+                                td5.style.cssText = tdStyle;
+                                td5.appendChild(td5Text);
+                                td5.appendChild(br);
+                                td5.appendChild(hr);
+                            }
+
+                            row1.appendChild(td5);
+
+                            var td6 = document.createElement("td");
+                            var td6Text = document.createTextNode(errArr[errArr.length - 1]);
+                            td6.style.cssText = tdStyle;
+                            td6.appendChild(td6Text);
+                            row1.appendChild(td6);
+
+                            inputContainer.appendChild(row1);
+                        }
+
+                    } else {
+//                        dwnbtn.style.display = "none";
+                        resetAll();
+                        alertBox('No Data Found', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function resetAll() {
+                sessionStorage.removeItem('fromDate');
+                sessionStorage.removeItem('toDate');
+                sessionStorage.removeItem('ATMDownTime');
+                $("#AllDwnbody").empty();
+
+            }
+
+            function editDate(date1) {
+
+                try {
+                    var edtdate
+                    if (!date1.includes("N/A")) {
+                        edtdate = date1.replaceAll(/~/g, "\n").replaceAll(".00", "").trim().replaceAll(".0", "");
+                        return edtdate;
+                    } else {
+                        return "0";
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+//            function searchFunction() {
+//                var input, filter, table, tr, td, td1, td2, td3, td4, i,
+//                        txtValue, txtValue1, txtValue2, txtValue3, txtValue4;
+//                input = document.getElementById("myInput");
+//                filter = input.value.toUpperCase();
+//                table = document.getElementById("ATMAllDwnReport");
+//                tr = table.getElementsByTagName("tr");
+//                for (i = 0; i < tr.length; i++) {
+//                    td = tr[i].getElementsByTagName("td")[1];
+//                    td1 = tr[i].getElementsByTagName("td")[3];
+//                    td2 = tr[i].getElementsByTagName("td")[2];
+//
+//                    if (td || td1 || td2) {
+//                        txtValue = td.textContent || td.innerText;
+//                        txtValue1 = td1.textContent || td1.innerText;
+//                        txtValue2 = td2.textContent || td2.innerText;
+//
+//                        if (txtValue.toUpperCase().indexOf(filter) > -1 || txtValue1.toUpperCase().indexOf(filter) > -1 || txtValue2.toUpperCase().indexOf(filter) > -1) {
+//                            tr[i].style.display = "";
+//                        } else {
+//                            tr[i].style.display = "none";
+//                        }
+//                    }
+//                }
+//            }
+
+            function sortTable(col) {
+
+                var dir, shouldSwitch;
+                dir = "asc";
+                var switching = true;
+                const table = document.getElementById('ATMAllDwnReport');
+                const headers = table.querySelectorAll('th');
+                var text = headers[col].innerHTML;
+                text = text.substring(0, text.length - 1);
+
+                const type = headers[col].getAttribute('data-type');
+
+                var rows = $('#ATMAllDwnReport tbody tr').get();
+
+                while (switching) {
+                    switching = false;
+                    rows.sort(function (a, b) {
+                        // Get the content of cells
+                        if (type == "number") {
+                            var cellA = parseInt($(a).children('td').eq(col).text().toUpperCase());
+                            var cellB = parseInt($(b).children('td').eq(col).text().toUpperCase());
+                        } else {
+                            var cellA = $(a).children('td').eq(col).text().toUpperCase();
+                            var cellB = $(b).children('td').eq(col).text().toUpperCase();
+                        }
+
+
+                        if (dir == "desc") {
+
+                            switch (true) {
+                                case cellA > cellB:
+                                    shouldSwitch = true;
+                                    return 1;
+                                case cellA < cellB:
+                                    return -1;
+                                case cellA === cellB:
+                                    return 0;
+                            }
+                        } else if (dir == "asc") {
+                            switch (true) {
+                                case cellA > cellB:
+                                    return -1;
+                                case cellA < cellB:
+                                    shouldSwitch = true;
+                                    return 1;
+                                case cellA === cellB:
+                                    return 0;
+                            }
+                        }
+                    });
+                    $.each(rows, function (index, row) {
+                        $('#ATMAllDwnReport').children('tbody').append(row);
+                    });
+
+                    if (shouldSwitch && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+
+                    }
+                }
+                if (dir == "asc") {
+                    text += ' &#9660';
+                } else if (dir == "desc") {
+                    text += ' &#9650';
+                }
+                headers[col].innerHTML = text;
+            }
+
+        </script>
+
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"></h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+
+        <div class="feedback-w3layouts">   
+
+            <div class="clear"></div> 
+
+            <hr>
+
+            <div class="row">
+                <button onclick="exportTableToXLSX('ATMAllDwnReport', 'ATM Down Time Report - ' + sessionStorage.getItem('ATMDownTime') + '- ' + sessionStorage.getItem('AllDwnFromDate') + '- ' + sessionStorage.getItem('AllDwnToDate'))" 
+                        id="btndwnloadExcel" style="display: block;float: left;margin: 10px;">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                    Download (XLSX)
+                </button>
+                <button onclick="exportTableToPDF('ATMAllDwnReport', 'ATM Down Time Report - ' + sessionStorage.getItem('ATMDownTime') + '- ' + sessionStorage.getItem('AllDwnFromDate') + '- ' + sessionStorage.getItem('AllDwnToDate'), 'pdfFrame')" 
+                        id="btndwnloadPDF" style="display: block;float: left;margin: 10px;">
+                    <i class="fa fa-file-pdf-o" aria-hidden="true"></i>             	
+                    Download (PDF)
+                </button>
+                <input type="text" id="myInput" onkeyup="initializeTableFilter('ATMAllDwnReport', 'myInput')" placeholder="Search..." title="Seacrch">
+
+
+            </div>
+
+            <iframe id="pdfFrame" style="display: none;"></iframe>
+
+            <div class="clear"></div>
+
+            <div class="container">
+                <table class="fixed_header table-bordered" id="ATMAllDwnReport" style="overflow-x:auto;">
+                    <thead>
+                        <tr>
+                            <th>ATM</th>
+                            <th>Branch Code</th>                             
+                            <!--<th onclick="sortTable(1)" data-type="number">BR/C &#9650</th>-->
+                            <th>LOCATION</th> 
+                            <!--                            <th onclick="sortTable(3)">ATM &#9650</th> -->
+
+                            <th>Device Type</th>
+                            <th>Vender</th>
+                            <th>Error Time</th>  
+                            <th>Total Err Time (min)</th>
+                        </tr>
+
+
+                    </thead>
+                    <tbody id="AllDwnbody">
+                    </tbody>
+                </table>
+
+                <div class="clear"> </div>
+
+
+            </div>
+
+
+
+
+
+        </div>
+
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Reports.js"></script>
+
+
+
+
+
+    </body>
+
+
+</html>

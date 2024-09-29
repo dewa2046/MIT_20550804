@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                var user = sessionStorage.getItem("UName");
+                if (user == null) {
+                    window.location.replace("Login.html");
+                } else {
+                    inactivityTime();
+                    setFunctionsHome(sessionStorage.getItem("AllowedFunc"));
+                }
+
+//                setFunctionsHome();
+            });
+        </script>
+
+        <style>
+            #tblHome td{
+                border-radius: 25px;
+                background: #e6eded8a;
+                padding: 10px;
+                width: 100px;
+                font-size: 12px;
+                font-family: "Trebuchet MS", sans-serif;
+                /*                font-family: 'Roboto', sans-serif;*/
+                /*height: 100px;*/
+            }
+            #tblHome {
+                border-collapse: separate;
+                border-spacing: 20px;
+            }
+            #tblHome div{
+                display: grid;
+                justify-items: center;
+
+            }
+            .tdServices{
+                display: none;
+            }
+
+            #tblHome th {
+                /*background: #82bebe;*/
+                /*background: #3292bfc2;*/
+                /*                color: #2A2A2A;*/
+                background: #003953;
+                color: #ffffff;
+                font-weight: bold;
+                line-height: 18px;
+                font-size: 18px;
+                padding: 10px 15px;
+                font-family: "Trebuchet MS", sans-serif;
+                /*font-weight:bold;*/
+            }
+
+            .custom-icon{
+                font-size: 30px;
+                color: #1d769f;
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <div class="topnav"> </div>
+        <!--        <h1>Welcome to BOC ATM Unit Dashboard</h1>-->
+        <!--<h1>Welcome to ATM Dashboard</h1>-->
+
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>       
+
+        <!--<div class="feedback-w3layouts">-->
+        <div class="container">
+            <table class="fixed_header table table-bordered" id="tblHome">
+
+                <!--Administrative Services-->
+                <tr id="1" style="display: none;">
+                    <th colspan="6"><div>Administrative Services</div></th>
+                </tr>
+
+                <tr>
+                    <td id="4" style="display: none;">
+                        <div>
+                            <!--<img src="images/newsystemuser.png" alt="New System User">  <br>-->
+                            <i class="fa fa-user-plus custom-icon" aria-hidden="true"></i><br>
+                            <a href="NewSystemUser.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                                       return false;">
+                                New System User</a>
+                        </div>
+                    </td>
+
+                    <td id="5" style="display: none;">
+                        <div>
+                            <!--<img src="images/systemusers.png" alt="Manage System Users"> <br>--> 
+                            <i class="fa fa-users custom-icon" aria-hidden="true"></i><br>
+                            <a href="ManageSystemUsers.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage System Users</a>
+                        </div>
+                    </td>
+
+                    <td id="6" style="display: none;">
+                        <div>
+                            <!--<img src="images/userLvlFunc.png" alt="Manage User Group Functions"> <br>--> 
+                            <i class="fa fa-sitemap custom-icon" aria-hidden="true"></i><br>
+                            <a href="ManageUserLevelFunc.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage User Group Functions</a>
+                        </div>
+                    </td>
+                    <td id="7" style="display: none;">
+                        <div>
+                            <!--<img src="images/branch.png" alt="Manage Branch Details"> <br>--> 
+                            <i class="fa fa-bank custom-icon" aria-hidden="true"></i><br>
+                            <a href="ManageBranchDetails.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage Branch Details</a>
+                        </div>
+                    </td>
+                    <td id="16" style="display: none;">
+                        <div>
+                            <!--<img src="images/vender.png" alt="Manage Vender Details"> <br>--> 
+                            <i class="fa fa-truck custom-icon" aria-hidden="true"></i><br>
+                            <a href="ManageVenderDetails.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage Vender Details</a>
+                        </div>
+                    </td>
+                    <td id="17" style="display: none;">
+                        <div>
+                            <!--<img src="images/vender.png" alt="Manage Vender Details"> <br>--> 
+                            <i class="fa fa-key custom-icon" aria-hidden="true"></i><br>
+                            <a href="SetConfig.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage Configuration</a>
+                        </div>
+                    </td>
+                </tr>
+
+                <!--Services-->
+                <tr id="2" style="display: none;">
+                    <th colspan="6"><div>Services</div></th>
+                </tr>
+
+                <tr>
+                    <td id="9" style="display: none;">
+                        <div>
+                            <!--<img src="images/atm_2.png" alt="ATM Status Now"> <br>--> 
+                            <i class="fa fa-info custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMStatus.html"  
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Status Now</a>
+                        </div>
+                    </td>
+
+                    <td id="10" style="display: none;">
+                        <div>
+                            <!--<img src="images/dashboard.png" alt="ATM Dash Board">  <br>-->
+                            <i class="fa fa-pie-chart custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMDashBoard.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Dash Board</a>
+                        </div>
+                    </td>
+
+                    <td id="8" style="display: none;">
+                        <div>
+                            <!--<img src="images/atm2.png" alt="ATM Operations"> <br>-->
+                            <i class="fa fa-cogs custom-icon" aria-hidden="true"></i><br>
+                            <a href="MaintainATMDetails.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                Manage ATM Details</a>
+                        </div>
+                    </td>
+                    <td id="12" style="display: none;">
+                        <div>
+                            <!--<img src="images/contact.png" alt="ATM Contact Details">  <br>-->
+                            <i class="fa fa-phone custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMContactDetails.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Contact Details</a>
+                        </div>
+                    </td>
+                    <td id="11" style="display: none;">
+                        <div>
+                            <!--<img src="images/atmfault.png" alt="ATM Fault Entry">  <br>-->
+                            <i class="fa fa-warning custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMFaultEntryMain.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Fault Entry</a>
+                        </div>
+                    </td>
+                    <td id="15" style="display: none;">
+                        <div>
+                            <!--<img src="images/atmCash.png" alt="ATM Cash Info">  <br>-->
+                            <i class="fa fa-money custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMCashInfo.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Cash Info</a>
+                        </div>
+                    </td>
+                </tr>                             
+
+                <!--Reports-->
+
+                <tr id="3" style="display: none;">
+                    <th colspan="6"><div>Reports</div></th>
+                </tr>
+
+                <tr>
+                    <td id="20" style="display: none;">
+                        <div>
+                            <!--<img src="images/report.png" alt="ATM Down Time Report">  <br>-->
+                            <i class="fa fa-newspaper-o custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMInformationReportMain.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Information Report</a>
+                        </div>
+                    </td>
+                    <td id="13" style="display: none;">
+                        <div>
+                            <!--<img src="images/report.png" alt="ATM Down Time Report">  <br>-->
+                            <i class="fa fa-bar-chart custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMDownTimeReport.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Down Time Report</a>
+                        </div>
+                    </td>
+                    <td id="21" style="display: none;">
+                        <div>
+                            <!--<img src="images/report.png" alt="ATM Down Time Report">  <br>-->
+                            <i class="fa fa-pie-chart custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMDownTimeGraph.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Down Time Graph</a>
+                        </div>
+                    </td>
+                    <td id="14" style="display: none;">
+                        <div>
+                            <!--<img src="images/atmDownTime.png" alt="ATM Fault Entry Report">   <br>-->
+                            <i class="fa fa-line-chart custom-icon" aria-hidden="true"></i><br>
+                            <a href="ATMFaultEntryReportMain.html"   
+                               onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">
+                                ATM Fault Entry Report</a>
+                        </div>
+                    </td> 
+                    <td style="display: none;"></td>
+                    <td style="display: none;"></td>
+                    <td style="display: none;"></td>
+                    <td style="display: none;"></td>
+                </tr>
+            </table>
+        </div>
+        <!--</div>-->
+
+
+
+
+
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+    </body>
+</html>

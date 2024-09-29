@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        getBranchDetails();
+                        getATMModels();
+                        getATMVenders();
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            });
+
+            //*** load Branch ***
+            function loadBranchDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("branch");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+//                        option.text = unit[i]["BR_CODE"] + " - " + unit[i]["BR_NAME"];
+                        option.text = unit[i]["BR_NAME"];
+                        option.value = unit[i]["BR_CODE"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            //*** load ATM Models ***
+            function loadATMModels(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("model");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["MODEL_NAME"];
+                        option.value = unit[i]["MODEL_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+            //*** load Vender Details ***
+            function loadATMVenders(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("vender");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["VENDER_NAME"];
+                        option.value = unit[i]["VENDER_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+            }
+
+
+            // *** Search ATM *** 
+            async function getATM() {
+
+                try {
+                    var canSearch = "true";
+                    var atm = $('#atmname').val().trim().toUpperCase();
+
+                    if (!atm) {
+                        atm = " ";
+                        alertBox('&#9940 Enter ATM to search', 'e');
+                        canSearch = "false";
+                    } else {
+                        atm = $('#atmname').val().trim().toUpperCase();
+                    }
+
+                    if (canSearch == "true") {
+                        var arrayrecord_data = [atm];
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getATMDetails(arrayrecord_data);
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            //*** Load ATM Details ***
+            function loadATMDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+
+                    if (size > 0) {
+                        $("#atmname").val(unit[0]["ATM_NAME"]);
+                        $("#branch").val(unit[0]["BR_CODE"]);
+                        $("#location").val(unit[0]["LOCATION"]);
+                        $("#ip").val(unit[0]["IP"]);
+                        $("#os").val(unit[0]["OS"]);
+                        $("#model").val(unit[0]["MODEL"]);
+                        $("#vender").val(unit[0]["VENDER"]);
+                        var dt = new Date(unit[0]["INST_DATE"]);
+                        let formatted_date = dt.getFullYear() + "-" + appendLeadingZeroes(dt.getMonth() + 1) + "-" + appendLeadingZeroes(dt.getDate());
+                        $("#installedDate").val(formatted_date);
+                        $("#divtype").val(unit[0]["DIV_TYPE"]);
+                        $("#serial").val(unit[0]["SERIAL"]);
+                        if (unit[0]["EMV"] == 1) {
+                            document.getElementById('emv').checked = true;
+                        }
+                        if (unit[0]["RECYCLER"] == 1) {
+                            document.getElementById('recycler').checked = true;
+                        }
+                        if (unit[0]["STATUS"] == 0) {
+                            document.getElementById('status').checked = false;
+                        }
+                        if (unit[0]["REMOTE"] == 1) {
+                            document.getElementById('remote').checked = true;
+                        }
+                        if (unit[0]["OVERSEAS"] == 1) {
+                            document.getElementById('overseas').checked = true;
+                        }
+
+
+                    } else {
+                        alertBox('&#10060 No Records Found.Check ATM Name', 'e');
+                        document.getElementById('okbtn').onclick = function (e) {
+                            window.location.reload();
+                        };
+//                        //refresh after 2sec
+//                        window.setTimeout(function () {
+//                            window.location.reload();
+//                        }, 2000);
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function appendLeadingZeroes(n) {
+                if (n <= 9) {
+                    return "0" + n;
+                }
+                return n;
+            }
+
+            //validate IP
+            function validateIP(ip) {
+                // Regular expression for IPv4 address pattern
+                var ipPattern = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})){3}$/;
+
+                // Check if the provided IP matches the pattern
+                return ipPattern.test(ip);
+            }
+
+//**********Add/Update ATM ********
+            async function addupdateATM() {
+
+                try {
+
+                    var form = document.getElementById('ATMDetails');
+                    var requiredFields = form.querySelectorAll('[required]');
+
+                    // Check if all required fields are filled
+                    for (var i = 0; i < requiredFields.length; i++) {
+                        if (requiredFields[i].value.trim() === '') {
+//                            alert('Please fill out all required fields.');
+                            return false; // Prevent form submission
+                        }
+                    }
+
+                    var ip = $('#ip').val().trim();
+                    if (ip) {
+                        if (!validateIP(ip)) {
+                            alertBox('&#10060 Invalid IP Address');
+                            return false;
+                        }
+                    }
+                    var atmname = $('#atmname').val().trim().toUpperCase();
+                    var brcode = $('#branch').val();
+                    var location = $('#location').val().trim().toUpperCase();
+                    var os = $('#os').val();
+                    var model = $('#model').val();
+                    var vender = $('#vender').val();
+                    var installedDate = $('#installedDate').val();
+                    var divtype = $('#divtype').val();
+                    var serial = $('#serial').val().trim();
+                    var emv = 0;
+                    if (document.getElementById('emv').checked) {
+                        emv = 1;
+                    }
+                    var recycler = 0;
+                    if (document.getElementById('recycler').checked) {
+                        recycler = 1;
+                    }
+                    var status = 0;
+                    if (document.getElementById('status').checked) {
+                        status = 1;
+                    }
+                    var remote = 0;
+                    if (document.getElementById('remote').checked) {
+                        remote = 1;
+                    }
+                    var overseas = 0;
+                    if (document.getElementById('overseas').checked) {
+                        overseas = 1;
+                    }
+
+                    var arrayrecord_data = [atmname, brcode, location, ip, os, model, vender, installedDate,
+                        divtype, serial, emv, recycler, status, remote, overseas, sessionStorage.getItem("UId")];
+
+                    alertBoxConfirm('&#9889 Do you want to Add/Update ?');
+                    $('#yesbtn').on("click", function () {
+                        addUpdateATMDetails(arrayrecord_data);
+                    });
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            // ********************
+
+            function loadResults(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        alertBox('&#9989 ATM Details Added/Updated!', 's');
+
+                        $('#okbtn').on("click", function () {
+                            window.location.reload();
+                        });
+                        //refresh after 5sec
+                        window.setTimeout(function () {
+                            window.location.reload();
+                        }, 5000);
+                    } else {
+                        alertBox('&#10060 Error in Creating New Entry!', 'e');
+                    }
+//                    window.location.reload();
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function resetAll() {
+                try {
+
+//                    alertBoxConfirm('&#9889 Do you want to Reset? <br> \n\ Unsaved data will be lost!');
+                    alertBoxConfirm('&#9889 Do you want to Reset? Unsaved data will be lost!');
+                    $('#yesbtn').on("click", function () {
+                        document.getElementById('atmname').value = '';
+                        document.getElementById('branch').value = '';
+                        document.getElementById('location').value = '';
+                        document.getElementById('ip').value = '';
+                        document.getElementById('os').value = '';
+                        document.getElementById('model').value = '';
+                        document.getElementById('vender').value = '';
+                        document.getElementById('installedDate').value = '';
+                        document.getElementById('divtype').value = '';
+                        document.getElementById('serial').value = '';
+                        document.getElementById('emv').checked = false;
+                        document.getElementById('recycler').checked = false;
+                        document.getElementById('status').checked = true;
+                        document.getElementById('remote').checked = false;
+                        document.getElementById('overseas').checked = false;
+
+                    });
+
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+        </script>
+
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                /*                width: 60px;
+                                height: 34px;*/
+                width: 60px;
+                height: 22px;
+            }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                /*                height: 26px;
+                                width: 26px;*/
+                height: 15px;
+                width: 15px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+
+            input:focus + .slider {
+                box-shadow: 0 0 1px #2196F3;
+            }
+
+            input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(35px);
+            }
+
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 34px;
+            }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+        </style>
+
+    </head>
+
+    <body>
+
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> Maintain ATM Details</h1>
+
+        <form method="POST" id="ATMDetails" onsubmit="return false;">
+            <div class="feedback-w3layouts">
+                <div class="container-fluid" id="mainDiv">
+                    <div class="col-xs-6 table-responsive">                   
+                        <div class="row" style="margin-right: 5px;">
+                            <div class="left-grid" id="atmlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> ATM NAME *</label>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="atmname" style="width: 50% ; text-transform:uppercase" required/> 
+                                <input type="button" id="searchATM" value="Search" onclick="getATM()" style="width: 45%;margin: 5px;padding: 0.5em;">
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="brlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> BRANCH *</label>
+                            </div>
+                            <div class="input-group">
+                                <select class="form-control" id="branch" required>
+                                    <option value="" disabled selected>Please Select an Option</option>
+                                </select>
+                            </div>                            
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="locationlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> LOCATION *</label>
+                            </div>
+                            <div class="input-group">
+                                <textarea id="location"  maxlength="40" required style="text-transform:uppercase;height: auto"></textarea>
+                                <!--<input type="text" id="location" style="text-transform:uppercase"/>--> 
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="iplbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> IP </label>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="ip" /> 
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="oslbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> Operating System *</label>
+                            </div>
+
+                            <div class="input-group">
+                                <select class="form-control" id="os" required>
+                                    <option value="">Please Select an Option</option>
+                                    <option value="WIN7">WINDOWS 7</option>
+                                    <option value="WIN10">WINDOWS 10</option>	
+                                    <option value="WIN11">WINDOWS 11</option>	
+
+                                </select>
+                            </div>
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="modellbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> MODEL *</label>
+                            </div>
+
+                            <div class="input-group">
+                                <select class="form-control" id="model" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="venderlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> VENDER *</label>
+                            </div>
+
+                            <div class="input-group">
+                                <select class="form-control" id="vender" required>
+                                    <option value="" disabled selected>Please Select an Option</option>				
+                                </select>
+                            </div>  
+
+                            <div class="clear"> </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xs-6 table-responsive">                   
+                        <div class="row" style="margin-left: 5px;">
+                            <div class="left-grid" id="datebl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> INSTALLED DATE </label>
+                            </div>
+                            <div class="input-group">                            
+                                <input type="date" id="installedDate" name="installedDate">
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="divlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> DEVICE TYPE *</label>
+                            </div>
+                            <div class="input-group">
+                                <select class="form-control" id="divtype" required>
+                                    <option value="">Please Select an Option</option>
+                                    <option value="ATM" >ATM</option>
+                                    <option value="CDM" >CDM </option>
+                                    <option value="CRM" >CRM</option>
+                                </select>
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="seriallbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> SERIAL NO</label>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="serial" /> 
+                            </div>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="emvlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> EMV </label>
+                            </div>
+                            <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                <input type="checkbox" id="emv">
+                                <span class="slider round"></span>
+                            </label>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="recyclerlbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> RECYCLER </label>
+                            </div>
+                            <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                <input type="checkbox" id="recycler">
+                                <span class="slider round"></span>
+                            </label>
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="statuslbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> STATUS </label>
+                            </div>
+                            <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                <input type="checkbox" id="status" checked>
+                                <span class="slider round"></span>
+                            </label>
+
+                            <div class="clear"> </div>    
+
+                            <div class="left-grid" id="remotelbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> REMOTE </label>
+                            </div>
+                            <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                <input type="checkbox" id="remote">
+                                <span class="slider round"></span>
+                            </label>                            
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid" id="overseaslbl">
+                                <label><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> OVERSEAS </label>
+                            </div>
+                            <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                <input type="checkbox" id="overseas">
+                                <span class="slider round"></span>
+                            </label>                            
+
+                            <div class="clear"> </div>
+
+
+
+
+
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+                <hr>
+                <!--            <input type="button" id="delete" value="Delete" onclick="deleteATM()" style="float:left;width: 45%;margin: 5px;padding: 0.5em;">
+                            <input type="button" id="addupdate" value="Add/update" onclick="addupdateATM()" style="float:right;width: 45%;margin: 5px;padding: 0.5em;">-->
+
+                <input type="button" id="reset" value="Reset" onclick="resetAll()" style="float:left;width: 45%;margin: 5px;padding: 0.5em;">
+                <input type="submit" id="addupdate" value="Add/update"  style="float:right;width: 45%;margin: 5px;padding: 0.5em;" onclick="addupdateATM()">
+                <!--<input type="button" id="addupdate" value="Add/update" onclick="addupdateATM()" style="float:right;width: 45%;margin: 5px;padding: 0.5em;">-->
+            </div>
+        </form>
+
+
+
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Services.js"></script>
+        <!--<script src="../ATMDashBoard/js/User.js"></script>-->
+    </body>
+</html>

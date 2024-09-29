@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+                inactivityTime();
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+                    var userId = sessionStorage.getItem("UId");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        document.getElementById('uName').innerHTML = user;
+//                        var func = sessionStorage.getItem("AllowedFunc");
+                        setFunctions(sessionStorage.getItem("AllowedFunc"));
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            function logoutFun() {
+                try {
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.replace("Login.html");
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+            function changePassword() {
+                document.getElementById('iframeID').src = "ChangePassword.html";
+            }
+
+            /* Toggle between adding and removing the "responsive" class to topnav when the user clicks on the icon */
+            function myFunction() {
+                var x = document.getElementById("myTopnav");
+                if (x.className === "topnav") {
+                    x.className += " responsive";
+                } else {
+                    x.className = "topnav";
+                }
+            }
+        </script>
+
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+
+    </head>
+
+    <!--*************************************************-->
+    <body>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <div class="topnav" id="myTopnav">
+            
+            <!--<a href="#" style="text-decoration: none"><img src="images/bocweb.png" alt="Home" style="padding-right: 20px;"> ATM Dashboard </a>-->
+            <a href="#" style="text-decoration: none"><img src="images/bocweb.png" alt="Home" style="padding-right: 20px;"> ATM Dashboard </a>
+            
+            <a href="homeNew.html" class="active" id="0" 
+               onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                       return false;"><i class="fa fa-home" aria-hidden="true"></i></a>
+
+<!--            <a href="ServicesMain.html" id="1" 
+               onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                       return false;" style="display: none;">Services</a>
+
+            <a href="ReportsMain.html" id="2" 
+               onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                       return false;" style="display: none;">Reports</a>-->
+
+            <div class="dropdown">
+                <button class="dropbtn"><label id="uName"></label>
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="changePassword()">Change Password</a>
+                    <a href="#" onclick="logoutFun()">Logout</a>
+                </div>
+            </div>
+
+
+            <a href="javascript:void(0);" class="icon" onclick="myFunction()">&#9776;</a>
+        </div>
+        <div class="container">
+            <iframe id = "iframeID" class="responsive-iframe" src="homeNew.html"></iframe>
+        </div>
+
+<!--        <div id="footerNew">           
+
+            <div class="col-xs-4 table-responsive">
+                <label><i class="fa fa-user" aria-hidden="true"></i> Welcome: </label>
+                <label id="uName"></label>   
+            </div>
+
+            <div class="col-xs-4 table-responsive">
+                <button type="button" class="footerButton" onclick="changePassword()"><img src="images/changepassword.png"> Change Password</button>
+            </div>
+
+            <div class="col-xs-4 table-responsive">
+                <button type="button" class="footerButton" onclick="logoutFun()"><img src="images/logout.png"> Logout</button>
+            </div>
+
+
+        </div>-->
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+</html>

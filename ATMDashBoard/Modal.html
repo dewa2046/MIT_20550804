@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+<!--                <div class="modal-header">
+                    <p class="modal-title" id="modaltitle">Modal title</p>
+                </div>-->
+                <!-- Modal content-->
+                <div class="modal-content" id="modalContent">                        
+                    <div class="modal-body">
+                        <p id="modal_body"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="okbtn">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Confirm -->
+        <div class="modal fade" id="myModalConfirm" role="dialog" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content" id="modalContentConfirm">                        
+                    <div class="modal-body">
+                        <p id="modal_body_confirm"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="nobtn" style="width: 48%;">NO</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="yesbtn" style="width: 48%;">YES</button>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

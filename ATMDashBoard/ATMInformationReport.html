@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--refresh every 10min-->
+        <meta http-equiv="refresh" content="600">         
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+        <script src="jQueryAssets/xlsx.full.min.js"></script>
+        <script src="jQueryAssets/jspdf.umd.min.js"></script>
+
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+        <script>
+            async function onPageLoad() {
+
+                try {
+                    var qry = sessionStorage.getItem("ATMInfoReport");
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        var arrayrecord_data = [qry];
+                        getATMInfoReport(arrayrecord_data);
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+            function loadATMInfoReport(jason_data) {
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    clearTable('atminforeport');
+
+                    var inputContainer = document.getElementById("atminforeportbody");
+                    document.getElementById('cnt').innerHTML = size;
+                    for (var i = 0; i < size; i++) {
+
+                        var emv = 'Y';
+                        if (unit[i]["EMV"] == '0') {
+                            emv = 'N';
+                        }
+
+                        var recycler = 'Y';
+                        if (unit[i]["RECYCLER"] == '0') {
+                            recycler = 'N';
+                        }
+
+                        var remote = 'Y';
+                        if (unit[i]["REMOTE"] == '0') {
+                            remote = 'N';
+                        }
+
+                        var overseas = 'Y';
+                        if (unit[i]["OVERSEAS"] == '0') {
+                            overseas = 'N';
+                        }
+
+                        var row = document.createElement("tr");
+                        addValuetoRows(row, unit[i]["ATM_NAME"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["BR_CODE"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["BR_NAME"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["LOCATION"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["PROVINCE_NAME"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["DIV_TYPE"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["MODEL_NAME"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["VENDER_NAME"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, unit[i]["OS"], 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, emv, 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, recycler, 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, remote, 'white-space: nowrap;text-align: left;');
+                        addValuetoRows(row, overseas, 'white-space: nowrap;text-align: left;');
+
+                        inputContainer.appendChild(row);
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function exportTableToPDFX() {
+                // Get the table element
+                var table = document.getElementById('atminforeport');
+
+                // Create a new jsPDF instance
+                var doc = new jsPDF();
+
+                // Add header row styling
+                var headerRowStyle = {
+                    fillColor: '#f2f2f2' // Background color for header row
+                };
+
+                // Add table content to PDF
+                doc.autoTable({
+                    html: '#' + table.id,
+                    startY: 10, // Start position from top in mm
+                    styles: {
+                        cellPadding: 2,
+                        fontSize: 10
+                    },
+                    headerStyles: headerRowStyle // Apply header row styling
+                });
+
+                // Save PDF
+                doc.save('table.pdf');
+            }
+
+
+
+        </script>
+    </head>
+    <body onload="onPageLoad()">
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1> ATM Information Report</h1>
+        <div class="feedback-w3layouts"> 
+
+            <div class="container">
+                <label><i class="fa fa-info-circle" aria-hidden="true"></i> Count :</label>
+                <label id="cnt" style="padding-right: 10px;"></label>
+                <!--<div class="clear"> </div>-->
+
+                <iframe id="pdfFrame" style="display: none;"></iframe>
+
+                <input type="text" id="myInput" onkeyup="initializeTableFilter('atminforeport', 'myInput')" placeholder="Search..." title="Seacrch">
+                <button onclick="exportTableToXLSX('atminforeport', 'ATM Information Report')" 
+                        id="btndwnloadExcel" style="display: block;float: right;margin: 10px;">
+                    <!--                    <span class="glyphicon glyphicon-download"></span>-->
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                    Download (XLSX)
+                </button>
+                <button onclick="exportTableToPDF('atminforeport', 'ATM Information Report', 'pdfFrame')" 
+                        id="btndwnloadPDF" style="display: block;float: right;margin: 10px;">
+                    <!--<span class="glyphicon glyphicon-download"></span>-->
+                    <i class="fa fa-file-pdf-o" aria-hidden="true"></i>             	
+                    Download (PDF)
+                </button>
+                <div class="clear"> </div>
+                <table class="fixed_header table-bordered" id="atminforeport" style="overflow-x:auto;">
+
+                    <thead>
+                        <tr>
+                            <th title="Station Name">ATM</th>
+                            <th title="Branch Code">BR CODE</th>
+                            <th title="Branch">BRANCH</th>
+                            <th title="Location">LOCATION</th>  
+                            <th title="Province">PROVINCE</th> 
+                            <th title="div">DEVICE TYPE</th>
+                            <th title="model">MODEL</th>
+                            <th title="vender">VENDER</th>                            
+                            <th title="os">OS</th>                              
+                            <th title="emv">EMV</th> 
+                            <th title="recycler">RECYCLER</th> 
+                            <th title="remote">REMOTE</th> 
+                            <th title="overseas">OVERSEAS</th> 
+
+
+
+
+                        </tr>
+                    </thead>
+                    <tbody id="atminforeportbody">
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Reports.js"></script>
+    </body>
+</html>

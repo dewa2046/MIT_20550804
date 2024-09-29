@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        setFunctions(sessionStorage.getItem("AllowedFunc"));
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+
+        </script>
+
+        <style>
+
+            .custom-icon{
+                font-size: 30px;
+                color: #1d769f;
+                padding-right: 10px;
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Down Time Report Menu </h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+
+        <div class="feedback-w3layouts">      
+
+            <div class="container" >
+                <div class="row" id="21" style="display: none;">
+
+                    <div class="table-responsive" style='float: left;'>
+                        <a class="servicesMenu" href="ATMDownTimeReport.html"    
+                           onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                                   return false;"> <i class="fa fa-bar-chart custom-icon" aria-hidden="true"></i>Technical Faults (Report)</a>
+                    </div>
+
+                    <div class="clear"></div>
+                    <hr>
+
+                </div>
+
+                <div class="row" id="22" style="display: none;">
+                    <div class="table-responsive" style='float: left;'>
+                        <a class="servicesMenu" href="ATMDownTimeGraph.html"    
+                           onclick="document.getElementById('iframeID').src = this.getAttribute('href');
+                                   return false;"> <i class="fa fa-pie-chart custom-icon" aria-hidden="true"></i>Technical Faults (Graph)</a>
+                    </div>
+
+                    <div class="clear"></div>
+                    <hr>
+
+                </div>
+
+                <!--                <div class="row">
+                                    <div class="col-xs-3 table-responsive">
+                                        <img src="images/transactionSummary.png" alt="ATM Transactions Summary"> 
+                                    </div>
+                
+                                    <div class="col-xs-9 table-responsive">
+                                        <a class="servicesMenu" href="DisplayATMTxnsSummary.html" id="2.2.2"   
+                                           onclick="document.getElementById('iframeID').src = this.getAttribute('href');return false;">Transactions Summary</a>
+                                    </div>
+                                </div>-->
+
+
+
+
+
+
+            </div>
+        </div>
+
+
+        <!--<script src="../Production/js/GetSetDetails_ATM.js"></script>-->
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <!--        <script src="../Production/displayDates.html"></script>
+                <script src="../Production/readJournal.html"></script>
+                <script src="../Production/displayVideo.html"></script>-->
+
+    </body>
+
+
+</html>

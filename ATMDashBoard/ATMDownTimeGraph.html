@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script src="jQueryAssets/chart.js"></script>
+        <script src="jQueryAssets/html2canvas.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+                    if (user == null) {
+//                        window.location.replace("Login.html");
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            });
+
+
+            async function getAllDwnSummary() {
+                try {
+
+                    var canInsert = "true";
+                    var errColor = "#db3472bf";
+                    var fromDate = document.getElementById("fromDate").value;
+                    var toDate = document.getElementById("toDate").value;
+                    var dFrom = Date.parse(fromDate);
+                    var dTo = Date.parse(toDate);
+                    $("#AllDwnbody").empty();
+
+                    var CurrentDate = getCurrentDate();
+
+                    if (fromDate == "" || (dFrom > CurrentDate)) {
+                        fromDate = "";
+                        alertBox('&#10060 Enter Valid Date Range', 'e');
+//                        document.getElementById("fromDate").style.backgroundColor = errColor;
+                        canInsert = "false";
+                    }
+                    if (toDate == "" || (dTo > CurrentDate) || !(compareDates(dFrom, dTo))) {
+                        toDate = "";
+                        alertBox('&#10060 Enter Valid Date Range', 'e');
+//                        document.getElementById("toDate").style.backgroundColor = errColor;
+                        canInsert = "false";
+                    }
+
+
+                    if (canInsert == "true") {
+                        resetAll();
+                        sessionStorage.setItem("AllDwnFromDate", fromDate);
+                        sessionStorage.setItem("AllDwnToDate", toDate);
+                        var userBr = sessionStorage.getItem("UBr");
+                        var userLvl = sessionStorage.getItem("ULvl");
+
+                        var arrayrecord_data = [fromDate, toDate, userLvl, userBr];
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getAllDownGraph(arrayrecord_data);
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadAllDownGraph(jason_data) {
+                $(".se-pre-con").fadeOut("slow");
+                $("#AllDwnbody").empty();
+                var dwnbtn = document.getElementById("btndwnload");
+                var lblWait = document.getElementById("wait");
+                var divMain = document.getElementById("downtimegraph");
+                var inputContainer = document.getElementById("downTimeDescTblBody");
+                var btnDownload = document.getElementById("btndwnload1");
+
+
+                $("#downTimeDescTblBody").empty();
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+
+                    if (size > 0) {
+                        divMain.style.display = "block";
+                        btnDownload.style.display = "block";
+                        var CSTEMPTY = parseFloat(unit[0]["CSTEMPTY"].split("~")[0]);
+                        var CSTFAULT = parseFloat(unit[0]["CSTFAULT"].split("~")[0]);
+                        var PINFAULT = parseFloat(unit[0]["PINFAULT"].split("~")[0]);
+                        var CARDCLOSEFAULT = parseFloat(unit[0]["CARDCLOSEFAULT"].split("~")[0]);
+                        var MONEYDRAWFAULT = parseFloat(unit[0]["MONEYDRAWFAULT"].split("~")[0]);
+                        var DOWNFAULT = parseFloat(unit[0]["DOWNFAULT"].split("~")[0]);
+
+                        var CSTEMPTYCOUNT = parseInt(unit[0]["CSTEMPTY"].split("~")[1]);
+                        var CSTFAULTCOUNT = parseInt(unit[0]["CSTFAULT"].split("~")[1]);
+                        var PINFAULTCOUNT = parseInt(unit[0]["PINFAULT"].split("~")[1]);
+                        var CARDCLOSEFAULTCOUNT = parseInt(unit[0]["CARDCLOSEFAULT"].split("~")[1]);
+                        var MONEYDRAWFAULTCOUNT = parseInt(unit[0]["MONEYDRAWFAULT"].split("~")[1]);
+                        var DOWNFAULTCOUNT = parseInt(unit[0]["DOWNFAULT"].split("~")[1]);
+
+
+                        var total = CSTEMPTY + CSTFAULT + PINFAULT + CARDCLOSEFAULT + MONEYDRAWFAULT + DOWNFAULT;
+
+                        if (total > 0) {
+                            var cstEmptyPer = ((CSTEMPTY / total) * 100).toFixed(2);
+                            var cstFaultPer = ((CSTFAULT / total) * 100).toFixed(2);
+                            var cstFaultPerUpper = (((CSTEMPTY + CSTFAULT) / total) * 100).toFixed(2);
+                            var pinPer = ((PINFAULT / total) * 100).toFixed(2);
+                            var pinPerUpper = (((CSTEMPTY + CSTFAULT + PINFAULT) / total) * 100).toFixed(2);
+                            var cardClosePer = ((CARDCLOSEFAULT / total) * 100).toFixed(2);
+                            var cardClosePerUpper = (((CSTEMPTY + CSTFAULT + PINFAULT + CARDCLOSEFAULT) / total) * 100).toFixed(2);
+                            var moneyDrawerPer = ((MONEYDRAWFAULT / total) * 100).toFixed(2);
+                            var modeyDrawerPerUpper = (((CSTEMPTY + CSTFAULT + PINFAULT + CARDCLOSEFAULT + MONEYDRAWFAULT) / total) * 100).toFixed(2);
+                            var downPer = ((DOWNFAULT / total) * 100).toFixed(2);
+                            var downPerUpper = (((CSTEMPTY + CSTFAULT + PINFAULT + CARDCLOSEFAULT + MONEYDRAWFAULT + DOWNFAULT) / total) * 100).toFixed(2);
+
+                            var xValues = ["All Cassette Empty", "All Cassette Fault", "PinPad Fault", "Card Reader Fault", "Currency Acceptor", "Network Down/Power"];
+                            var yValues = [cstEmptyPer, cstFaultPer, pinPer, cardClosePer, moneyDrawerPer, downPer];
+                            var barColors = [
+                                "#68ca9b",
+                                "#ffee58",
+                                "#e57373",
+                                "#585858",
+                                "#3292bfc2",
+                                "#9e9e9e"
+//                                "#fadd059c",
+//                                "#359669",
+//                                "#ea4444",
+//                                "#585858",
+//                                "#658DD8",
+//                                "#42b3aa9b"
+                            ];
+
+                            var mychart = new Chart("myChart", {
+                                type: "pie",
+                                data: {
+                                    labels: xValues,
+                                    datasets: [{
+                                            backgroundColor: barColors,
+                                            data: yValues
+                                        }]
+                                },
+                                options: {
+                                    legend: {
+                                        position: "right",
+                                        display: true,
+                                        onClick: (e) => e.stopPropagation()
+//                                       onClick(){alert(mychart.data.labels.index);}
+                                    },
+                                    tooltips: {
+                                        enabled: true
+                                    }
+                                }
+                            });
+
+//                            document.getElementById("myChart").onclick = function (evt) {
+//                                var activePoint = mychart.getElementAtEvent(evt);
+//                                // make sure click was on an actual point
+//                                if (activePoint.length > 0) {
+//                                    var clickedDatasetIndex = activePoint[0]._datasetIndex;
+//                                    var clickedElementindex = activePoint[0]._index;
+//                                    var label = mychart.data.labels[clickedElementindex];
+//                                    var value = mychart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
+//                                    getATMReportIndividual(label);
+////                                    alert("Clicked: " + label + " - " + value);
+//                                }
+//                            };
+
+                            var hdr = document.getElementById("downTimeDescTblHeader");
+                            hdr.innerText = "ATM FAULT SUMMARY ( " + sessionStorage.getItem("AllDwnFromDate") + " - " + sessionStorage.getItem("AllDwnToDate") + " )";
+                            var a1Style = "float: left;";
+
+                            //***ROW1***
+                            var row1 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotgreen";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "All Cassette Empty";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "cstempty");
+                            if (CSTEMPTYCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(CSTEMPTY));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(cstEmptyPer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(CSTEMPTYCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row1.appendChild(td0);
+                            row1.appendChild(td1);
+                            row1.appendChild(td2);
+                            row1.appendChild(td3);
+                            row1.appendChild(td4);
+
+                            inputContainer.appendChild(row1);
+
+                            //***ROW2***
+                            var row2 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotyellow";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "All Cassette Fault";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "cstfault");
+                            if (CSTFAULTCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(CSTFAULT));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(cstFaultPer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(CSTFAULTCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row2.appendChild(td0);
+                            row2.appendChild(td1);
+                            row2.appendChild(td2);
+                            row2.appendChild(td3);
+                            row2.appendChild(td4);
+
+                            inputContainer.appendChild(row2);
+
+                            //***ROW3***
+                            var row3 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotred";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "PinPad Fault";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "pinfault");
+                            if (PINFAULTCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(PINFAULT));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(pinPer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(PINFAULTCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row3.appendChild(td0);
+                            row3.appendChild(td1);
+                            row3.appendChild(td2);
+                            row3.appendChild(td3);
+                            row3.appendChild(td4);
+
+                            inputContainer.appendChild(row3);
+
+                            //***ROW4***
+                            var row4 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotblack";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "Card Reader Fault";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "cardfault");
+                            if (CARDCLOSEFAULTCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(CARDCLOSEFAULT));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(cardClosePer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(CARDCLOSEFAULTCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row4.appendChild(td0);
+                            row4.appendChild(td1);
+                            row4.appendChild(td2);
+                            row4.appendChild(td3);
+                            row4.appendChild(td4);
+
+                            inputContainer.appendChild(row4);
+
+                            //***ROW5***
+                            var row5 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotblue";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "Currency Acceptor Fault";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "currencyfault");
+                            if (MONEYDRAWFAULTCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(MONEYDRAWFAULT));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(moneyDrawerPer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(MONEYDRAWFAULTCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row5.appendChild(td0);
+                            row5.appendChild(td1);
+                            row5.appendChild(td2);
+                            row5.appendChild(td3);
+                            row5.appendChild(td4);
+
+                            inputContainer.appendChild(row5);
+
+                            //***ROW6***
+                            var row6 = document.createElement("tr");
+
+                            var td0 = document.createElement("td");
+                            var sp0 = document.createElement("SPAN");
+                            sp0.className = "square dotblueGreen";
+                            td0.appendChild(sp0);
+
+                            var td1 = document.createElement("td");
+                            var a1 = document.createElement("a");
+                            a1.innerHTML = "Network Down/Power Off";
+                            a1.setAttribute('href', "#!");
+                            a1.setAttribute('value', "downfault");
+                            if (DOWNFAULTCOUNT > 0) {
+                                a1.setAttribute('onclick', 'getATMReportIndividual(this)');
+                            }
+
+                            a1.style.cssText = a1Style;
+                            td1.appendChild(a1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(toHoursAndMinutes(DOWNFAULT));
+                            td2.appendChild(td2Text);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(downPer + "%");
+                            td3.appendChild(td3Text);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(DOWNFAULTCOUNT);
+                            td4.appendChild(td4Text);
+
+                            row6.appendChild(td0);
+                            row6.appendChild(td1);
+                            row6.appendChild(td2);
+                            row6.appendChild(td3);
+                            row6.appendChild(td4);
+
+                            inputContainer.appendChild(row6);
+
+                        } else {
+                            alertBox('&#10060 No data found', 'e');
+                            divMain.style.display = "none";
+                            btnDownload.style.display = "none";
+                        }
+
+                    } else {
+                        divMain.style.display = "none";
+                        btnDownload.style.display = "none";
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+
+            function getATMReportIndividual(e2) {
+//                var chkVal = e2.getAttribute('value');
+                var chkVal = e2.getAttribute('value');
+
+//                sessionStorage.removeItem("ATMDownTime");
+                sessionStorage.setItem("ATMDownTime", chkVal);
+
+                window.open("ATMDownTimeReportIndividual.html", 'targetWindow_' + chkVal,
+                        `toolbar=no,
+                                            location=no,
+                                            status=no,
+                                            menubar=no,
+                                            scrollbars=yes,
+                                            resizable=no,
+                                            width=1200px,
+                                            height=800px`);
+            }
+
+            function toHoursAndMinutes(n) {
+
+                var num = n;
+                var hours = (num / 60);
+                var rhours = Math.floor(hours);
+                var minutes = (hours - rhours) * 60;
+                var rminutes = Math.round(minutes);
+//                    return rhours + "~" + rminutes;
+                return rhours + " hour(s) and " + rminutes + " minute(s).";
+
+
+            }
+
+            function editDate(date1) {
+
+                try {
+                    var edtdate
+                    if (!date1.includes("N/A")) {
+                        edtdate = date1.replaceAll(/~/g, "\n").replaceAll(".00", "").trim().replaceAll(".0", "");
+                        return edtdate;
+                    } else {
+                        return "0";
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function resetAll() {
+//                document.getElementById("fromDate").value = "";
+//                document.getElementById("toDate").value = "";
+                sessionStorage.removeItem('fromDate');
+                sessionStorage.removeItem('toDate');
+                $("#downTimeDescTblBody").empty();
+
+            }
+
+            function compareDates(dt1, dt2) {
+                return dt2 >= dt1;
+            }
+
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+            function captureScreen() {
+                html2canvas(document.body).then(function (canvas) {
+                    // Convert the canvas to a data URL
+                    var dataURL = canvas.toDataURL('image/png');
+                    // Create a link element to trigger the download
+                    var link = document.createElement('a');
+                    link.download = 'screenshot.png';
+                    link.href = dataURL;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+
+            function captureElement(elementId) {
+                var element = document.getElementById(elementId); // Replace elementId with the desired element's ID
+                html2canvas(element).then(function (canvas) {
+                    var fromDate = sessionStorage.getItem("AllDwnFromDate");
+                    var toDate = sessionStorage.getItem("AllDwnToDate");
+                    var imageName = 'ATMFault_' + fromDate + '_' + toDate + '.png';
+                    var dataURL = canvas.toDataURL('image/png');
+                    var link = document.createElement('a');
+                    link.download = imageName;
+                    link.href = dataURL;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+
+
+
+        </script>
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Technical Fault (GRAPH)</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+
+        <div class="feedback-w3layouts">   
+
+            <div class="row">
+                <label id="lblFrom"><i class="fa fa-calendar" aria-hidden="true"></i> FROM </label>
+                <input type="date" id="fromDate" name="fromDate" style="float: left;width: auto;margin-left: 20px;margin-right: 20px;" >
+                <label id="lblTo"><i class="fa fa-calendar" aria-hidden="true" ></i> TO </label>
+                <input type="date" id="toDate" name="toDate" style="float: left;width: auto;margin-left: 20px;margin-right: 20px;">
+                <input type="button" value="Search"  style="float: left; margin-left: 20px;margin-top:0" onclick="getAllDwnSummary()">
+                <!--<label for="wait" id="wait" style="float:left;margin-left: 20px;font-size: 20px;font-style: italic;color: crimson;" >Text</label>-->
+            </div>
+
+            <div class="clear"></div> 
+
+            <hr>
+
+
+            <div class="clear"></div>
+
+            <div class="container">
+                <!--<input type="button" value="Download" style="float: left; margin-left: 20px;margin-top:0" onclick="captureElement('downtimegraph')">-->
+                <!--<button onclick="captureElement('downtimegraph')" id="btndwnload1" style="float:right;display:none">Download</button>-->
+
+                <button onclick="captureElement('downtimegraph')" 
+                        id="btndwnload1" style="float:right;display:none">
+                    <i class="fa fa-camera-retro" aria-hidden="true"></i>
+                    CAPTURE
+                </button> 
+
+                <div class="clear"></div>
+
+                <div id="downtimegraph" style="display: none;">                    
+
+                    <div class="table-responsive">
+                        <canvas id="myChart" ></canvas>
+                    </div>                    
+
+
+                    <div class="clear"></div>
+
+                    <table class="fixed_header table table-bordered" id="downTimeDescTbl" style="padding-top: 5%;">
+                        <thead>
+                            <tr>
+                                <th colspan="5" id="downTimeDescTblHeader"></th>
+                            </tr>
+                            <tr>
+                                <th ></th>
+                                <th >CATEGORY</th>
+                                <th >TOTAL HOURS</th> 
+                                <th >PERCENTAGE</th>
+                                <th >NO OF MACHINES</th>                                      
+                            </tr>
+                        </thead>
+                        <tbody id="downTimeDescTblBody">
+
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+
+
+            <div class="clear"> </div>
+
+
+        </div>
+
+
+
+
+
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Reports.js"></script>
+
+
+
+    </body>
+
+
+</html>

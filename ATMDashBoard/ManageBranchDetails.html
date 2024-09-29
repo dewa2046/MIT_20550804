@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            let brCodeArray = [];
+            let brNameArray = [];
+
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    sessionStorage.removeItem("UserFunc");
+                    sessionStorage.removeItem("userIdFunc");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        getAllBranches();
+                        getAllProvinces();
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            function returnAllProvinces(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                var select = document.getElementById("province");
+                var option;
+                for (var i = 0; i < size; i++) {
+                    option = document.createElement('option');
+                    option.text = unit[i]["PROVINCE_NAME"];
+                    option.value = unit[i]["PROVINCE_ID"];
+                    select.add(option);
+                }
+            }
+
+            function returnAllBranches(jsonData) {
+
+                const tableContainer = document.getElementById('tableContainer');
+                const filterInput = document.getElementById('myInput');
+                const filterButton = document.getElementById('filterButton');
+                const pagination = document.getElementById('pagination');
+                let data = jsonData.data;
+                let filteredData = [];
+                let currentPage = 1;
+                const itemsPerPage = 10;
+
+                addBrCode(data);
+                addBrName(data);
+                filterData('');
+                displayTableData(paginateData(data, currentPage, itemsPerPage));
+                const totalPages = Math.ceil(data.length / itemsPerPage);
+                displayPagination(totalPages);
+
+                function addBrCode(data) {
+                    var size = data.length;
+
+                    try {
+                        for (var i = 0; i < size; i++) {
+                            brCodeArray.push(data[i]["BR_CODE"]);
+                        }
+                    } catch (e) {
+                        alertBox('Error! - ' + e, 'e');
+                    }
+                }
+
+                function addBrName(data) {
+                    var size = data.length;
+
+                    try {
+                        for (var i = 0; i < size; i++) {
+                            brNameArray.push(data[i]["BR_NAME"]);
+                        }
+                    } catch (e) {
+                        alertBox('Error! - ' + e, 'e');
+                    }
+                }
+
+                function displayTableData(data) {
+                    var size = data.length;
+                    var imgEditUser = "images/edituser.png";
+                    var imgEditUserFunc = "images/edituserfunc.png";
+                    var imgResetUser = "images/resetpwd.png";
+
+
+                    try {
+                        var inputContainer = document.getElementById("branchDetailsbody");
+                        inputContainer.innerHTML = ''; // Clear previous content
+                        for (var i = 0; i < size; i++) {
+                            var row1 = document.createElement("tr");
+                            var td1 = document.createElement("td");
+                            var td1Text = document.createTextNode(data[i]["BR_CODE"]);
+//                        td1.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td1.appendChild(td1Text);
+                            row1.appendChild(td1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(data[i]["BR_NAME"]);
+                            td2.style.cssText = "text-align: left";
+//                        td2.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(data[i]["PROVINCE_NAME"]);
+                            td3.style.cssText = "text-align: left";
+//                        td2.style.cssText = "text-align: left;padding: 5px; border:solid 1px;";
+                            td3.appendChild(td3Text);
+                            row1.appendChild(td3);
+
+                            var td4 = document.createElement("td");
+                            var a4 = document.createElement('a');
+                            var iconElement = document.createElement("i");
+                            a4.setAttribute('href', "#");
+                            var valEdit = data[i]["BR_CODE"] + "~" + data[i]["BR_NAME"] + "~" + data[i]["PROVINCE_ID"];
+                            a4.setAttribute('value', valEdit);
+                            a4.setAttribute('onclick', 'getBranchEdit(this)');
+                            iconElement.className = "fa fa-edit";
+                            iconElement.style.cssText = "font-size: 1.5em;";
+                            a4.setAttribute('title', "Edit Branch Details");
+                            a4.appendChild(iconElement);
+                            td4.appendChild(a4);
+                            row1.appendChild(td4);
+
+                            inputContainer.appendChild(row1);
+
+                        }
+
+                    } catch (e) {
+                        alertBox('Error! - ' + e, 'e');
+                    }
+                }
+
+                function paginateData(data, currentPage, itemsPerPage) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    return data.slice(startIndex, endIndex);
+                }
+
+                function displayPagination(totalPages) {
+                    pagination.innerHTML = ''; // Clear previous content                    
+
+//                    const firstButton = document.createElement('button');
+//                    firstButton.textContent = 'First';
+//                    firstButton.addEventListener('click', function () {
+//                        currentPage = 1;
+//                        displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+//                        currentPageSpan.textContent = currentPage;
+//                    });
+//                    pagination.appendChild(firstButton);
+
+                    const prevButton = document.createElement('button');
+                    prevButton.textContent = 'Previous';
+                    prevButton.addEventListener('click', function () {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                            currentPageSpan.textContent = currentPage;
+                        }
+                    });
+                    pagination.appendChild(prevButton);
+
+                    // Display first few pages
+                    for (let i = 1; i <= Math.min(3, totalPages); i++) {
+                        const pageButton = document.createElement('button');
+                        pageButton.textContent = i;
+                        pageButton.addEventListener('click', function () {
+                            currentPage = i;
+                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                            currentPageSpan.textContent = currentPage;
+                        });
+                        pagination.appendChild(pageButton);
+                    }
+
+                    const dots = document.createElement('span');
+                    dots.textContent = '     ';
+                    pagination.appendChild(dots);
+
+                    const currentPageSpan = document.createElement('span');
+                    var statusStyle = "background:#003953;border:none;color:#ffffff;padding:5px;"
+                    currentPageSpan.style = statusStyle;
+                    currentPageSpan.textContent = currentPage;
+                    pagination.appendChild(currentPageSpan);
+
+                    const dots1 = document.createElement('span');
+                    dots1.textContent = '     ';
+                    pagination.appendChild(dots1);
+
+//                    if (currentPage > 5) {
+//                        const dots = document.createElement('span');
+//                        dots.textContent = '...';
+//                        pagination.appendChild(dots);
+//                    }
+
+//                    // Display a few pages before the current page
+//                    for (let i = Math.max(1, currentPage - 2); i < currentPage; i++) {
+//                        const pageButton = document.createElement('button');
+//                        pageButton.textContent = i;
+//                        pageButton.addEventListener('click', function () {
+//                            currentPage = i;
+//                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+//                            currentPageSpan.textContent = currentPage;
+//                        });
+//                        pagination.appendChild(pageButton);
+//                    }
+//
+//                    // Display a few pages after the current page
+//                    for (let i = currentPage + 1; i <= Math.min(currentPage + 2, totalPages); i++) {
+//                        const pageButton = document.createElement('button');
+//                        pageButton.textContent = i;
+//                        pageButton.addEventListener('click', function () {
+//                            currentPage = i;
+//                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+//                            currentPageSpan.textContent = currentPage;
+//                        });
+//                        pagination.appendChild(pageButton);
+//                    }
+//
+//                    if (currentPage < totalPages - 4) {
+//                        const dots = document.createElement('span');
+//                        dots.textContent = '...';
+//                        pagination.appendChild(dots);
+//                    }
+
+                    // Display last few pages
+                    for (let i = Math.max(totalPages - 2, 1); i <= totalPages; i++) {
+                        const pageButton = document.createElement('button');
+                        pageButton.textContent = i;
+                        pageButton.addEventListener('click', function () {
+                            currentPage = i;
+                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                            currentPageSpan.textContent = currentPage;
+                        });
+                        pagination.appendChild(pageButton);
+                    }
+
+                    const nextButton = document.createElement('button');
+                    nextButton.textContent = 'Next';
+                    nextButton.addEventListener('click', function () {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                            currentPageSpan.textContent = currentPage;
+                        }
+                    });
+                    pagination.appendChild(nextButton);
+
+//                    const lastButton = document.createElement('button');
+//                    lastButton.textContent = 'Last';
+//                    lastButton.addEventListener('click', function () {
+//                        currentPage = totalPages;
+//                        displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+//                        currentPageSpan.textContent = currentPage;
+//                    });
+//                    pagination.appendChild(lastButton);
+                }
+
+                function filterData(searchTerm) {
+                    if (searchTerm.trim() === '') {
+                        filteredData = data;
+                    } else {
+                        filteredData = data.filter(item => {
+                            for (let key in item) {
+                                if (item[key].toString().toLowerCase().includes(searchTerm)) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+                    }
+
+                    currentPage = 1; // Reset to first page
+                    displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                    displayPagination(totalPages);
+                }
+//
+                filterInput.addEventListener('keyup', function () {
+                    const searchTerm = filterInput.value.trim().toLowerCase();
+                    filterData(searchTerm);
+                });
+            }
+
+
+
+            function getBranchEdit(e) {
+                try {
+                    var branchDet = e.getAttribute('value');
+//                    alert(branchDet);
+                    document.getElementById("myModalAddNew").style.textAlign = "left";
+                    $('#myModalAddNew').modal({show: true});
+                    $('#myModalAddNew').modal(setInputValue(branchDet));
+
+                    var lblReq = document.getElementById("lblReq");
+                    lblReq.style.display = "none";
+
+                    var btnUpdate = document.getElementById("addbtn");
+                    btnUpdate.textContent = "UPDATE";
+
+
+                    var brCodePre = $('#brCode').val();
+                    var brNamePre = $('#brName').val().trim().toUpperCase();
+
+//                    alert(brCodePre + "~" + brNamePre);
+
+                    var okButton = document.getElementById("addbtn");
+                    $('#addbtn').on("click", function () {
+                        var brCode = $('#brCode').val();
+                        var brName = $('#brName').val().trim().toUpperCase();
+                        var province = $('#province').val();
+                        var canInsert = true;
+
+                        if (!brCode) {
+                            brCode = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else if (!brName) {
+                            brName = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else if (!province) {
+                            province = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else {
+                            if (brNamePre != brName) {
+                                if (isValueInColumn(brNameArray, brName) == true) {
+                                    lblReq.style.display = "block";
+                                    lblReq.innerText = "* Branch Name Already Exists";
+                                    okButton.removeAttribute("data-dismiss");
+                                    canInsert = false;
+                                } else {
+                                    lblReq.style.display = "none";
+                                    okButton.setAttribute("data-dismiss", "modal");
+                                    canInsert = true;
+                                }
+                            } else {
+                                lblReq.style.display = "none";
+                                okButton.setAttribute("data-dismiss", "modal");
+                                canInsert = true;
+                            }
+                        }
+                        if (canInsert) {
+                            var arrayrecord_data = ['editBr', brCode, brName, province, sessionStorage.getItem("UId")];
+                            addUpdateBranchetails(arrayrecord_data);
+                        }
+
+                    });
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function addNewBranch() {
+                try {
+                    document.getElementById("myModalAddNew").style.textAlign = "left";
+                    $('#myModalAddNew').modal({show: true});
+                    $('#myModalAddNew').modal(clearInputValue());
+
+                    var lblReq = document.getElementById("lblReq");
+                    lblReq.style.display = "none";
+
+                    var btnUpdate = document.getElementById("addbtn");
+                    btnUpdate.textContent = "ADD";
+
+                    var okButton = document.getElementById("addbtn");
+
+                    $('#addbtn').on("click", function () {
+                        var brCode = $('#brCode').val();
+                        var brName = $('#brName').val().trim().toUpperCase();
+                        var province = $('#province').val();
+                        var canInsert = true;
+
+                        if (!brCode) {
+                            brCode = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else if (!brName) {
+                            brName = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else if (!province) {
+                            province = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Required All Fields";
+                            okButton.removeAttribute("data-dismiss");
+                        } else {
+                            if (isValueInColumn(brCodeArray, brCode.toString()) == true) {
+                                lblReq.style.display = "block";
+                                lblReq.innerText = "* Branch Code Already Exists ";
+                                okButton.removeAttribute("data-dismiss");
+                                canInsert = false;
+                            } else if (isValueInColumn(brNameArray, brName) == true) {
+                                lblReq.style.display = "block";
+                                lblReq.innerText = "* Branch Name Already Exists";
+                                okButton.removeAttribute("data-dismiss");
+                                canInsert = false;
+                            } else {
+//                                canInsert = true;
+                                lblReq.style.display = "none";
+                                okButton.setAttribute("data-dismiss", "modal");
+                            }
+                        }
+
+                        if (canInsert == true) {
+
+                            var arrayrecord_data = ['addBr', brCode, brName, province, sessionStorage.getItem("UId")];
+                            addUpdateBranchetails(arrayrecord_data);
+                        }
+
+                    });
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            // get result of add/edit Branch details
+            function returnAddUpdateBranchetails(jason_data, rep) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+//                    alert(unit[0]["RESULT"]);
+                    if (size > 0) {
+                        if (rep == 'add') {
+                            alertBox('&#9989 New Branch Details Added', 's');
+                        } else if (rep == 'edit') {
+                            alertBox('&#9989 Branch Details Updated', 's');
+                        }
+
+                        document.getElementById('okbtn').onclick = function (e) {
+                            window.location.reload();
+                        };
+
+
+                    } else {
+                        alertBox('Error in Updating!', 'e');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function isValueInColumn(myArray, valueToCheck) {
+                for (var i = 1; i < myArray.length; i++) {
+                    if (myArray[i].toString() === valueToCheck) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function clearInputValue() {
+                var inputField1 = document.getElementById("brCode");
+                var inputField2 = document.getElementById("brName");
+                var inputField3 = document.getElementById("province");
+                inputField1.value = ""; // Set input value to empty string
+                inputField1.readOnly = false;
+                inputField2.value = "";
+                inputField3.value = "";
+            }
+
+            function setInputValue(val) {
+                var inputField1 = document.getElementById("brCode");
+                var inputField2 = document.getElementById("brName");
+                var inputField3 = document.getElementById("province");
+                inputField1.value = val.split("~")[0];
+                inputField1.readOnly = true;
+                inputField2.value = val.split("~")[1];
+                inputField3.value = val.split("~")[2];
+            }
+
+
+        </script>
+
+        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+        </script>
+
+        <style>
+            /*            tr:nth-child(even) {background-color: #7da52a;}
+                        tr:nth-child(odd) {background-color: #92C428;}*/
+            tr:nth-child(even) {
+                /*background-color: #b4dbf1;*/
+            }
+            tr:nth-child(odd) {
+                /*background-color: #8cbce6;*/
+            }
+
+            tr:hover {
+                background-color: #3292bfc2;
+            }
+
+            .feedback-w3layouts input[type="text"]{
+                float: left;
+                width: auto;
+                margin-bottom: 12px;
+            }
+            .feedback-w3layouts input[type="number"]{
+                float: left;
+                width: auto;
+                margin-bottom: 12px;
+            }
+
+            .left-grid label{
+                min-width: auto;
+                /*padding-right: 10px;*/
+            }
+        </style>
+
+
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> Manage Branch Details</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <div class="feedback-w3layouts">
+            <label for="lblAddNew" style="float:right;padding-left:20px;" ><a href="#" onclick="addNewBranch()" title="Add New Branch">
+                    <i class="fa fa-user-plus" aria-hidden="true" style="font-size:2em;"></i></a></label>
+
+            <input type="text" id="myInput" placeholder="Search..." title="Search...">
+
+            <div class="container" >
+                <table class="fixed_header table table-bordered" id="branchDetails" style="overflow-x:auto;">
+                    <thead>        
+                        <tr>
+                            <th>BRANCH CODE</th>
+                            <th>BRANCH NAME</th>
+                            <th>PROVINCE</th>
+                            <th>EDIT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="branchDetailsbody">
+
+
+                    </tbody>
+                </table>
+
+            </div>
+            <div id="pagination"></div>
+            <div class="modal fade" id="myModalAddNew" role="dialog" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content" id="modalContentConfirm">                        
+                        <div class="modal-body" style="padding: 25px;">
+                            <div class="left-grid">
+                                <label id="lblBrCode"><i class="fa fa-check-square-o" aria-hidden="true" ></i> Branch Code * </label>
+                            </div>
+                            <div class="right-grid">
+                                <input type="number" id="brCode" name="brCode">
+                            </div>
+
+
+                            <div class="clear"> </div>
+
+                            <div class="left-grid">
+                                <label id="lblBrName"><i class="fa fa-check-square-o" aria-hidden="true"></i> Branch Name * </label>
+                            </div>
+                            <div class="right-grid">
+                                <input type="text" id="brName" name="brName" style="text-transform:uppercase">
+                            </div>
+
+                            <div class="clear"> </div>
+                            <div class="left-grid">
+                                <label id="lblProvince"><i class="fa fa-check-square-o" aria-hidden="true"></i> Province * </label>
+                            </div>
+                            <div class="right-grid">
+                                <div class="input-group">
+                                    <select class="form-control" id="province" required>
+                                        <option value="" disabled selected>Please Select an Option</option>				
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="clear"> </div>
+                            <label id="lblReq" style="font-size:smaller;float: right;color:red;display: none;">Required</label>
+                            <!--<div class="clear"> </div>-->
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" id="cancelbtn" style="width: 48%;">CANCEL</button>
+                            <button type="button" class="btn btn-default"  id="addbtn" style="width: 48%;">ADD</button>                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+
+
+</html>

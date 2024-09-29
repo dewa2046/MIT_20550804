@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+        <script>
+//            $(window).on('load', function () {
+//                $(".se-pre-con").fadeOut("slow");
+//                $('#modelLoad').load("Modal.html");
+//
+//                try {
+//                    var user = sessionStorage.getItem("UName");
+//
+//                    if (user == null) {
+//                        window.location.replace("Login.html");
+//                    } else {
+//                        loadATMforFaults();
+//                        loadFaultTypes();
+//                        loadFaultActions();
+//                        loadFaultResults();
+//                        loadFaultCreatedUsers();
+//                    }
+//
+//                } catch (e) {
+//                    alertBox('Error! - ' + e, 'e');
+//                }
+//            });
+
+            async function onPageLoad() {
+
+                try {
+
+                    getATMforFaultsReport();
+                    getFaultsforReports();
+                    getFaultReportUsers();
+//                    var qry = sessionStorage.getItem("ATMInfoReport");
+//                    var user = sessionStorage.getItem("UName");
+//
+//                    if (user == null) {
+//                        window.location.replace("Login.html");
+//                    } else {
+//                        $(".se-pre-con").fadeIn("slow");
+//                        await sleep(1000);
+//                        var arrayrecord_data = [qry];
+//                        getATMInfoReport(arrayrecord_data);
+//                        $(".se-pre-con").fadeOut("slow");
+//                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            //load ATM names
+            function loadATMforFaultsReport(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("machine");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["ATM_NAME"] + "-" + unit[i]["BR_NAME"] + "(" + unit[i]["BR_CODE"] + ")";
+                        option.value = unit[i]["ATM_NAME"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            //load Fault Types
+            function loadFaultsForReports(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var FaultSelect = document.getElementById("fault");
+                    var ActionSelect = document.getElementById("action");
+                    var ResultSelect = document.getElementById("result");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["FAR_DESC"];
+                        option.value = unit[i]["FAR_DESC"];
+                        if (unit[i]["FAULT_DESC"] == 'FAULT') {
+                            FaultSelect.add(option);
+                        } else if (unit[i]["FAULT_DESC"] == 'ACTION') {
+                            ActionSelect.add(option);
+                        } else if (unit[i]["FAULT_DESC"] == 'RESULT') {
+                            ResultSelect.add(option);
+                        }
+
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            //load Fault Created Users
+            function loadFaultReportUsers(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("faultCreatedUsers");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["USER_NAME"] + " ( " + unit[i]["FIRST_NAME"] + " )";
+                        option.value = unit[i]["CREATED_USER"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function getReport() {
+
+                try {
+
+                    var form = document.getElementById('faultEntryForm');
+                    var requiredFields = form.querySelectorAll('[required]');
+                    // Check if all required fields are filled
+                    for (var i = 0; i < requiredFields.length; i++) {
+                        if (requiredFields[i].value.trim() === '') {
+                            return false; // Prevent form submission
+                        }
+                    }
+
+                    var fromDte = document.getElementById("fromDate").value;
+                    var toDte = document.getElementById("toDate").value;
+                    var qry = "WHERE " + "to_date(to_char(FAULT_ENTRY_DATE,'YYYY-MM-DD'),'YYYY-MM-DD') >= to_date('" + fromDte + "', 'yyyy-mm-dd') "
+                            + "and to_date(to_char(FAULT_ENTRY_DATE,'YYYY-MM-DD'),'YYYY-MM-DD') <= to_date('" + toDte + "', 'yyyy-mm-dd') ";
+
+                    if ($('#machine').val()) {
+                        qry += " AND FAULT_ATM = '" + $('#machine').val() + "'";
+                    }
+                    if ($('#fault').val()) {
+                        qry += " AND FAULT = '" + $('#fault').val() + "'";
+                    }
+                    if ($('#action').val()) {
+                        qry += " AND ACTION = '" + $('#action').val() + "'";
+                    }
+                    if ($('#result').val()) {
+                        qry += " AND RESULT = '" + $('#result').val() + "'";
+                    }
+                    if ($('#faultCreatedUsers').val()) {
+                        qry += " AND CREATED_USER = " + $('#faultCreatedUsers').val();
+                    }
+
+                    sessionStorage.setItem("ATMFaultEntryReport", qry);
+
+                    window.open("ATMFaultEntryReport.html", 'targetWindow_' + qry,
+                            `toolbar=no,
+                                            location=no,
+                                            status=no,
+                                            menubar=no,
+                                            scrollbars=yes,
+                                            resizable=no,
+                                            width=1500px,
+                                            height=800px`);
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+
+
+
+
+            function resetAll() {
+                document.getElementById("fromDate").value = "";
+                document.getElementById("toDate").value = "";
+                document.getElementById("tdFromDate").style.backgroundColor = '';
+                document.getElementById("tdToDate").style.backgroundColor = '';
+                $('#machine').prop('selectedIndex', 0);
+                $('#status').prop('selectedIndex', 0);
+                $('#state').prop('selectedIndex', 0);
+                $('#fault').prop('selectedIndex', 0);
+                $('#action').prop('selectedIndex', 0);
+                $('#result').prop('selectedIndex', 0);
+                $('#faultCreatedUsers').prop('selectedIndex', 0);
+                document.getElementById("EntryResultsTbl").style.display = "none";
+                document.getElementById("lblTxt").style.display = "none";
+                document.getElementById("btndwnload").style.display = "none";
+            }
+
+            window.onscroll = function () {
+                scrollFunction();
+            };
+        </script>
+
+
+
+    </head>
+
+    <body onload="onPageLoad()">
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Fault Entry Report</h1>
+
+        <form method="POST" id="faultEntryForm" onsubmit="return false;">
+            <div class="feedback-w3layouts"> 
+
+                <div class="container-fluid" id="mainDiv">
+                    <table  class="fixed_header table-bordered" id="tblCriteria" style="overflow-x:auto;text-align: left;" >
+                        <tr>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> FROM DATE * </td>
+                            <td>
+                                <input type="date" id="fromDate" name="fromDate" required>
+                            </td>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> TO DATE * </td>
+                            <td>
+                                <input type="date" id="toDate" name="toDate" required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> ATM NAME </td>
+                            <td>
+                                <select class="form-control" id="machine">
+                                    <option value="" selected>Skip...</option>				
+                                </select>
+                            </td>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> FAULT TYPE </td>
+                            <td>
+                                <select class="form-control" id="fault">
+                                    <option value="" selected>Skip...</option>
+                                </select>
+                            </td> 
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> ACTION TYPE </td>
+                            <td
+                                ><select class="form-control" id="action">
+                                    <option value="" selected>Skip...</option>				
+                                </select>
+                            </td>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> RESULT TYPE </td>
+                            <td>
+                                <select class="form-control" id="result">
+                                    <option value="" selected>Skip...</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-caret-square-o-right" aria-hidden="true" ></i> CREATED USER </td>
+                            <td>
+                                <select class="form-control" id="faultCreatedUsers">
+                                    <option value="" selected>Skip...</option>				
+                                </select>
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>                        
+                        <tr>
+                            <td colspan="4" style="text-align: center;"><input type="submit" id="viewReport" value="View Report"  onclick="getReport()"></td>                     
+
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+        </form>
+
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Reports.js"></script>
+    </body>
+</html>

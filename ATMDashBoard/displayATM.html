@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+
+                try {
+                    var atmdesc = sessionStorage.getItem("ATMDesc").split(",");
+                    document.getElementById('machine').innerHTML = atmdesc[0];
+                    document.getElementById('brcode').innerHTML = atmdesc[1];
+                    document.getElementById('branch').innerHTML = atmdesc[2];
+                    document.getElementById('location').innerHTML = atmdesc[3];
+                    document.getElementById('province').innerHTML = atmdesc[4];
+                    document.getElementById('model').innerHTML = atmdesc[5];
+                    document.getElementById('vender').innerHTML = atmdesc[6];
+                    document.getElementById('ip').innerHTML = atmdesc[7];
+                    var arrayrecord_data = [document.getElementById('machine').innerHTML];
+//                    downloadContacts(arrayrecord_data);
+                    sessionStorage.removeItem("ATMDesc");
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            function viewContacts(jason_data) {
+
+                try {
+                    var inputContainer = document.getElementById("atmdescbody");
+                    var unit = jason_data.data;
+                    var size = unit.length;
+
+                    if (size > 0) {
+                        for (var i = 0; i < size; i++) {
+
+                            var row1 = document.createElement("tr");
+
+                            var td1 = document.createElement("td");
+//                            var td1Text;
+//                            if (unit[i]["PF"])
+//                                td1Text = document.createTextNode(unit[i]["PF"]);
+//                            else
+//                                td1Text = document.createTextNode("");
+                            var td1Text = document.createTextNode(isObjectEmpty(unit[i]["PF"]));
+                            td1.style.cssText = "text-align: left;";
+                            td1.appendChild(td1Text);
+                            row1.appendChild(td1);
+
+                            var td2 = document.createElement("td");
+                            var td2Text = document.createTextNode(isObjectEmpty(unit[i]["NAME"]));
+                            td2.style.cssText = "text-align: left;";
+                            td2.appendChild(td2Text);
+                            row1.appendChild(td2);
+
+                            var td3 = document.createElement("td");
+                            var td3Text = document.createTextNode(isObjectEmpty(unit[i]["GRADE"]));
+                            td3.style.cssText = "text-align: left;";
+                            td3.appendChild(td3Text);
+                            row1.appendChild(td3);
+
+                            var td4 = document.createElement("td");
+                            var td4Text = document.createTextNode(isObjectEmpty(unit[i]["TEL_RES"]));
+                            td4.style.cssText = "text-align: left;";
+                            td4.appendChild(td4Text);
+                            row1.appendChild(td4);
+
+                            var td5 = document.createElement("td");
+                            var td5Text = document.createTextNode(isObjectEmpty(unit[i]["TEL_MOB"]));
+                            td5.style.cssText = "text-align: left;";
+                            td5.appendChild(td5Text);
+                            row1.appendChild(td5);
+
+                            inputContainer.appendChild(row1);
+
+                        }
+                    } else {
+//                        alert("No ATM Details to Load");
+                        var row1 = document.createElement("tr");
+                        var td1 = document.createElement("td");
+                        td1.setAttribute("colspan", "5");
+                        var td1Text = document.createTextNode("***No Contact Details to Load***");
+                        row1.style.cssText = "background-color: #8db5ec;font-style: italic;";
+                        td1.appendChild(td1Text);
+                        row1.appendChild(td1);
+                        inputContainer.appendChild(row1);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+        </script>
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <div class="feedback-w3layouts"> 
+            <h4>Machine Details</h4>
+
+            <div class="left-grid">
+                <label><i class="fa fa-gears" aria-hidden="true"></i> Machine ID </label>
+            </div>   
+            <label> : </label>
+            <label id="machine"></label>
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-building" aria-hidden="true"></i> Branch Code </label>
+            </div>
+            <label> : </label>
+            <label id="brcode"></label>
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-bank" aria-hidden="true"></i> Branch </label>
+            </div>
+            <label> : </label>
+            <label id="branch"></label>           
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-map-marker" aria-hidden="true"></i> Location </label>
+            </div>
+            <label> : </label>
+            <label id="location"></label>           
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-map" aria-hidden="true"></i> Province </label>
+            </div>
+            <label> : </label>
+            <label id="province"></label>            
+            <div class="clear"> </div>
+
+
+            <div class="left-grid">
+                <label><i class="fa fa-wrench" aria-hidden="true"></i> Model </label>
+            </div>
+            <label> : </label>
+            <label id="model"></label>            
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-truck" aria-hidden="true"></i> Vender </label>
+            </div>
+            <label> : </label>
+            <label id="vender"></label>            
+            <div class="clear"> </div>
+
+            <div class="left-grid">
+                <label><i class="fa fa-signal" aria-hidden="true"></i> IP </label>
+            </div>
+            <label> : </label>
+            <label id="ip"></label>            
+            <div class="clear"> </div>
+
+            <h4>Contact Details</h4>
+
+
+            <div class="container">
+                <table class="fixed_header table table-bordered" id="atmdesc">
+                    <thead>
+                        <tr>
+                            <th>PF</th>
+                            <th>NAME</th>
+                            <th>GRADE</th>
+                            <th>RES/TEL</th>
+                            <th>MOB</th>
+                        </tr>
+                    </thead>
+                    <tbody id="atmdescbody">
+
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+
+        <script src="../ATMUnit/js/AtmInfo.js"></script>
+        <script src="../ATMUnit/js/Common.js"></script>
+        <!--        <script src="../Production/displayDates.html"></script>
+                <script src="../Production/readJournal.html"></script>
+                <script src="../Production/displayVideo.html"></script>-->
+
+    </body>
+
+
+</html>

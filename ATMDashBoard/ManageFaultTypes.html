@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+
+        <script>
+            let errDescArray = [];
+
+            async function onPageLoad() {
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getFaultAllTypes('INI');
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            //load All Fault Types
+            function loadFaultAllTypes(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("flt_type");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["FAULT_DESC"];
+                        option.value = unit[i]["FAULT_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            //load All Fault Types for Edit
+            function loadFaultAllTypesADD(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("faultCat");
+                    for (var i = select.options.length - 1; i > 0; i--) {
+                        select.remove(i);
+                    }
+
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["FAULT_DESC"];
+                        option.value = unit[i]["FAULT_ID"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            async function getDetails(val) {
+                try {
+                    $(".se-pre-con").fadeIn(2000);
+                    await sleep(1000);
+                    var arrayrecord_data = [val.trim()];
+                    getFaultTypeDetails(arrayrecord_data);
+                    $(".se-pre-con").fadeOut("slow");
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+// load all functions
+            function loadFaultTypeDetails(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+                var imgDetails = "fa-edit";
+                errDescArray = [];
+
+                try {
+                    $("#editFuncbody").empty();
+                    var divtbl = document.getElementById("divTable");
+                    divtbl.style.display = "block";
+                    var inputContainer = document.getElementById("editFuncbody");
+                    for (var i = 0; i < size; i++) {
+                        var row1 = document.createElement("tr");
+                        var td1 = document.createElement("td");
+                        var td1Text = document.createTextNode(i + 1);
+                        td1.style.cssText = "text-align: left;padding: 5px;";
+                        td1.appendChild(td1Text);
+                        row1.appendChild(td1);
+
+                        var td1a = document.createElement("td");
+                        var td1aText = document.createTextNode(unit[i]["FAR_DESC"]);
+                        td1a.style.cssText = "text-align: left;padding: 5px;";
+                        td1a.appendChild(td1aText);
+                        row1.appendChild(td1a);
+
+                        var td2 = document.createElement("td");
+                        var statusStyle = "border-radius:3px;border:none;color:#ffffff;padding:5px;";
+                        var STATUS = "";
+                        if (unit[i]["FAR_STATUS"] == '1') {
+                            STATUS = "ACTIVE";
+                            statusStyle += "background:#37d337;";
+                        } else if (unit[i]["FAR_STATUS"] == '0') {
+                            STATUS = "INACTIVE";
+                            statusStyle += "background:#ff0000;";
+                        }
+                        const span = document.createElement('span');
+                        span.textContent = STATUS;
+                        span.style = statusStyle;
+
+                        td2.appendChild(span);
+                        row1.appendChild(td2);
+
+                        var td3 = document.createElement("td");
+                        var a3 = document.createElement('a');
+                        var icon3 = document.createElement("i");
+                        a3.setAttribute('href', "#!");
+                        var atmval = isObjectEmpty(unit[i]["FAR_ID"]) + "~" + isObjectEmpty(unit[i]["FAR_DESC"])
+                                + "~" + isObjectEmpty(unit[i]["FAR_TYPE"]) + "~" + isObjectEmpty(unit[i]["FAULT_DESC"])
+                                + "~" + isObjectEmpty(unit[i]["FAR_STATUS"]);
+                        a3.setAttribute('value', atmval);
+                        a3.setAttribute('onclick', 'editDetails(this)');
+                        icon3.classList.add('fa', 'fa-edit');
+                        icon3.setAttribute('title', "Click to edit details");
+                        icon3.style.fontSize = '20px';
+                        a3.appendChild(icon3);
+                        td3.appendChild(a3);
+                        row1.appendChild(td3);
+
+                        inputContainer.appendChild(row1);
+
+                        errDescArray.push(unit[i]["FAR_DESC"]);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function editDetails(e) {
+
+                try {
+                    var editDet = e.getAttribute('value');
+                    var farId = editDet.split("~")[0];
+                    var farDesc = editDet.split("~")[1];
+                    var farType = editDet.split("~")[2];
+                    var faultDesc = editDet.split("~")[3];
+                    var faultStatus = editDet.split("~")[4];
+
+                    $('#myModalEdit').modal({show: true});
+                    $('#myModalEdit').modal(setInputValue(editDet));
+
+                    var lblReq = document.getElementById("lblReqEdit");
+                    lblReq.style.display = "none";
+
+                    var descPre = $('#editFaultDesc').val().toString().trim();
+
+                    var editbtn = document.getElementById("editbtn");
+                    $('#editbtn').on("click", function () {
+                        var desc = $('#editFaultDesc').val();
+                        var canInsert = true;
+                        var status = 0;
+                        if (document.getElementById('fault_status').checked) {
+                            status = 1;
+                        }
+
+                        if (!desc) {
+                            desc = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Description Can't be Empty";
+                            editbtn.removeAttribute("data-dismiss");
+                        } else {
+                            if (descPre != desc) {
+                                if (isValueInColumn(errDescArray, desc.toString()) == true) {
+                                    lblReq.style.display = "block";
+                                    lblReq.innerText = "* Description Already Exists ";
+                                    editbtn.removeAttribute("data-dismiss");
+                                    canInsert = false;
+                                }else {
+                                    lblReq.style.display = "none";
+                                    editbtn.setAttribute("data-dismiss", "modal");
+                                    canInsert = true;
+                                }
+                            } else {
+                                lblReq.style.display = "none";
+                                editbtn.setAttribute("data-dismiss", "modal");
+                            }
+                        }
+
+                        if (canInsert == true) {
+                            var arrayrecord_data = [farId, desc.toUpperCase(), status, sessionStorage.getItem("UId")];
+                            updateFaultDetails(arrayrecord_data);
+                        }
+                    });
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function returnUpdateFaultDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == '1') {
+                            alertBox('&#9989 Details Updated', 's');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                        } else {
+                            alertBox('Error in Updating!');
+                        }
+                    } else {
+                        alertBox('Error in Updating!');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function setInputValue(val) {
+                var inputField1 = document.getElementById("editFaultDesc");
+                var inputField3 = document.getElementById("fault_status");
+                inputField1.value = val.split("~")[1];
+                if (val.split("~")[4] == 1) {
+                    inputField3.checked = true;
+                }
+            }
+
+            function isValueInColumn(myArray, valueToCheck) {
+                for (var i = 1; i < myArray.length; i++) {
+                    if (myArray[i].toString() === valueToCheck.trim()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function addNewFault() {
+
+                try {
+                    getFaultAllTypes('ADD');
+                    $('#myModalAddNew').modal(clearInputValue());
+                    $('#myModalAddNew').modal({show: true});
+
+                    var addbtn = document.getElementById("addbtn");
+                    var lblReq = document.getElementById("lblReqAdd");
+
+                    function handleClick() {
+                        var desc = $('#addFaultDesc').val();
+                        var faultcat = $('#faultCat').val();
+                        var canInsert = true;
+
+                        if (!desc) {
+                            desc = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Description can't be empty";
+                            addbtn.removeAttribute("data-dismiss");
+                        } else if (!faultcat) {
+                            faultcat = "";
+                            canInsert = false;
+                            lblReq.style.display = "block";
+                            lblReq.innerText = "* Select a category type";
+                            addbtn.removeAttribute("data-dismiss");
+                        } else {
+                            lblReq.style.display = "none";
+                            addbtn.setAttribute("data-dismiss", "modal");
+                        }
+
+                        if (canInsert == true) {
+                            var arrayrecord_data = [desc.toUpperCase(), faultcat, sessionStorage.getItem("UId")];
+                            addFaultDetails(arrayrecord_data);
+                        }
+                    }
+
+                    addbtn.onclick = handleClick;
+
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+
+            }
+
+            function returnAddFaultDetails(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == '1') {
+                            alertBox('&#9989 New Record Added', 's');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+                        } else if (unit[0]["RESULT"] == '0') {
+                            alertBox('&#10060 Record Already Exists');
+                        } else {
+                            alertBox('&#10060 Error in Creating Record!');
+                        }
+                    } else {
+                        alertBox('Error in Updating!');
+                    }
+
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function clearInputValue() {
+                var inputField1 = document.getElementById("addFaultDesc");
+                var inputField2 = document.getElementById("faultCat");
+                var inputField3 = document.getElementById("lblReqAdd");
+                inputField1.value = ""; // Set input value to empty string                
+                inputField2.value = "";
+                inputField3.innerText = "";
+            }
+
+
+
+        </script>
+
+
+        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+            function resetPage() {
+                location.reload();
+            }
+        </script>
+
+        <style>
+            /*            tr:nth-child(even) {background-color: #7da52a;}
+                        tr:nth-child(odd) {background-color: #92C428;}*/
+            tr:nth-child(even) {
+                /*background-color: #b4dbf1;*/
+            }
+            tr:nth-child(odd) {
+                /*background-color: #8cbce6;*/
+            }
+
+            tr:hover {
+                background-color: #3292bfc2;
+            }
+
+        </style>
+
+        <style>
+            .custom-modal-dialog {
+                width: fit-content; /* Adjust the width as needed */
+            }
+
+            .switch {
+                position: relative;
+                display: inline-block;
+                /*                width: 60px;
+                                height: 34px;*/
+                width: 60px;
+                height: 25px;
+            }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                /*                height: 26px;
+                                width: 26px;*/
+                height: 18px;
+                width: 18px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+
+            input:focus + .slider {
+                box-shadow: 0 0 1px #2196F3;
+            }
+
+            input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(35px);
+            }
+
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 34px;
+            }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+        </style>
+
+
+
+    </head>
+    <body onload=onPageLoad()>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('ATMFaultEntryMain.html')"> Manage ATM Fault Types</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <div class="feedback-w3layouts">
+
+            <div class="row">              
+                <label for="lblAddNew" style="float:right;padding-left:20px;" ><a href="#" onclick="addNewFault()" title="Add New">
+                        <i class="fa fa-plus-square" aria-hidden="true" style="font-size:2em;"></i></a></label>
+
+                <label for="lblCategory" style="float:left;" >Select Category</label>
+                <div class="input-group">
+                    <select class="form-control" id="flt_type" style="float: left;width: 200px;margin-left: 20px;" onchange="getDetails(this.value)">
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+            </div>
+            <div class="clear"></div> 
+            <hr>
+
+            <div class="container">
+                <div id="divTable" style="display: none;">
+
+                    <table class="fixed_header table table-bordered" id="editFunc" style="overflow-x:auto;">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>DESCRIPTION</th>
+                                <th>STATUS</th>
+                                <th>EDIT</th>                            
+                            </tr>
+                        </thead>
+                        <tbody id="editFuncbody">
+
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal fade" id="myModalAddNew" role="dialog" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content" id="modalContentAddNew">    
+                            <div class="modal-header">
+                                <h4 class="modal-title">Add New</h4>                            
+                            </div>
+                            <div class="modal-body" style="padding: 25px;">
+                                <div class="left-grid">
+                                    <label style="min-width: fit-content;padding-right: 5px;"><i class="fa fa-check-square-o" aria-hidden="true" ></i> Category * </label>
+                                </div>
+                                <div class="right-grid">
+                                    <div class="input-group">
+                                        <select class="form-control" id="faultCat" required>
+                                            <option value="" disabled selected>Please Select an Option</option>				
+                                        </select>
+                                    </div>    
+                                </div>
+                                <div class="clear"> </div>
+
+                                <div class="left-grid">
+                                    <label style="min-width: fit-content;padding-right: 5px;"><i class="fa fa-check-square-o" aria-hidden="true" ></i> Description * </label>
+                                </div>
+                                <div class="right-grid">
+                                    <textarea id="addFaultDesc" style="max-width: fit-content;margin-left: 5px;text-transform:uppercase;height: auto;min-width: 175px;"></textarea>
+                                </div>
+                                <div class="clear"> </div>
+                                <label id="lblReqAdd" style="font-size:smaller;float:right;color:red;display: none;"></label>
+                                <div class="clear"> </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancelbtn" style="width: 48%;">CANCEL</button>
+                                <button type="button" class="btn btn-default"  id="addbtn" style="width: 48%;">ADD</button>                        
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="myModalEdit" role="dialog" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content custom-modal-dialog" id="modalContentEdit">
+                            <div class="modal-header">
+                                <h4 class="modal-title"> Edit Details</h4>                            
+                            </div>
+
+                            <div class="modal-body" style="padding: 25px;">
+
+                                <div class="left-grid">
+                                    <label style="min-width: fit-content;padding-right: 5px;"><i class="fa fa-check-square-o" aria-hidden="true" ></i> Description * </label>
+                                </div>
+                                <div class="right-grid">
+                                    <textarea id="editFaultDesc" style="max-width: fit-content;margin-left: 5px;text-transform:uppercase;height: auto"></textarea>
+                                </div>
+
+                                <div class="clear"> </div>
+
+                                <div class="left-grid">
+                                    <label style="min-width: fit-content;padding-right: 5px;"><i class="fa fa-check-square-o" aria-hidden="true" ></i> Status </label>
+                                </div>
+                                <div class="right-grid">
+                                    <label class="switch" style="margin-top:5px;margin-bottom:10px;">
+                                        <input type="checkbox" id="fault_status">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                                <div class="clear"> </div>
+
+                                <label id="lblReqEdit" style="font-size:smaller;float:right;color:red;display: none;"></label>
+                                <div class="clear"> </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancelbtnEdit" style="width: 48%;">CANCEL</button>
+                                <button type="button" class="btn btn-default"  id="editbtn" style="width: 48%;">UPDATE</button>
+                                <!--<button type="button" class="btn btn-default"  id="editbtn" style="width: 48%;">UPDATE</button>-->                        
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <script src="../ATMDashBoard/js/Services.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+
+
+</html>

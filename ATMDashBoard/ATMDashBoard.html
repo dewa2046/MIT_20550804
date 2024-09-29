@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/dashboardLogo.ico"/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--refresh every 10min-->
+        <meta http-equiv="refresh" content="600"> 
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <!--// Stylesheets -->
+        <!--fonts-->        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script src="jQueryAssets/chart.js"></script>
+        <script src="jQueryAssets/html2canvas.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+            });
+        </script>
+
+
+        <script>
+
+            async function onPageLoad() {
+
+                try {
+                    var user = sessionStorage.getItem("UName");
+
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        $(".se-pre-con").fadeIn("slow");
+                        await sleep(1000);
+                        getATMUpdatedTime();
+                        getDashboard_1_2();
+                        getATMDeviceList();
+                        getDashboard_4();
+                        $(".se-pre-con").fadeOut("slow");
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadDashboardDetails_4(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+
+                try {
+                    if (size > 0) {
+
+                        var cstEmptyCount = parseInt(unit[0]["CSTEMPTCNT"]);
+                        var cstFaultCount = parseInt(unit[1]["CSTFAULTCNT"]);
+                        var rcptCount = parseInt(unit[2]["RCPTCNT"]);
+                        var pinCount = parseInt(unit[3]["PINCNT"]);
+                        var acceptorCount = parseInt(unit[4]["CACNT"]);
+                        var cardCount = parseInt(unit[5]["CRDCNT"]);
+
+//                        alert(cstEmptyCount + "~" + cstFaultCount + "~" + rcptCount + "~" + pinCount + "~" + acceptorCount + "~" + cardCount);
+
+                        var totalCount = cstEmptyCount + cstFaultCount + rcptCount + pinCount + acceptorCount + cardCount;
+
+                        var cstEmptyPer = ((cstEmptyCount / totalCount) * 100).toFixed(2);
+                        var cstFaultPer = ((cstFaultCount / totalCount) * 100).toFixed(2);
+                        var rcptPer = ((rcptCount / totalCount) * 100).toFixed(2);
+                        var pinPer = ((pinCount / totalCount) * 100).toFixed(2);
+                        var acceptorPer = ((acceptorCount / totalCount) * 100).toFixed(2);
+                        var cardPer = ((cardCount / totalCount) * 100).toFixed(2);
+
+//                        alert(cstEmptyPer + "~" + cstFaultPer + "~" + rcptPer + "~" + pinPer + "~" + acceptorPer + "~" + cardPer);
+
+                        //chart3
+                        var xValues = ["Cst Empty - " + cstEmptyCount + "(" + cstEmptyPer + "%)", "Cst Fault - " + cstFaultCount + "(" + cstFaultPer + "%)",
+                            "Receipt Printer(CRM) - " + rcptCount + "(" + rcptPer + "%)", "Pin Pad - " + pinCount + "(" + pinPer + "%)",
+                            "Curruency Acceptor - " + acceptorCount + "(" + acceptorPer + "%)", "Card Reader - " + cardCount + "(" + cardPer + "%)"];
+
+                        var yValues = [cstEmptyPer, cstFaultPer, rcptPer, pinPer, acceptorPer, cardPer];
+
+                        var barColors = [
+                            "#68ca9b",
+                            "#ffee58",
+                            "#9e9e9e",
+                            "#e57373",
+                            "#3292bfc2",
+                            "#585858"
+                        ];
+
+                        var mychart = new Chart("chart3", {
+                            type: "pie",
+                            data: {
+                                labels: xValues,
+                                datasets: [{
+                                        backgroundColor: barColors,
+                                        data: yValues
+                                    }]
+                            },
+                            options: {
+                                legend: {
+                                    position: "right",
+                                    display: true,
+                                    labels: {
+                                        boxWidth: 10
+//                                        wrapText:true
+                                    }
+                                },
+                                tooltips: {
+                                    enabled: true,
+                                    callbacks: {
+                                        label: function (tooltipItem, data) {
+                                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                                            var yValue = dataset.data[tooltipItem.index];//                                          
+                                            return yValue + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        mychart.legend.options.onClick = function (e, legendItem) {
+                            if (legendItem.index == 0) {
+                                getATMReport_1_2("cstEmpty");
+                            } else if (legendItem.index == 1) {
+                                getATMReport_1_2("AllCstFault");
+                            } else if (legendItem.index == 2) {
+                                getATMReport_1_2("rcptFault");
+                            } else if (legendItem.index == 3) {
+                                getATMReport_1_2("pinFault");
+                            } else if (legendItem.index == 4) {
+                                getATMReport_1_2("acceptorFault");
+                            } else if (legendItem.index == 5) {
+                                getATMReport_1_2("cardFault");
+                            }
+                        };
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+
+            function loadNetworkUpdatedTime(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                try {
+                    if (size > 0) {
+                        document.getElementById('nupdate').innerHTML = unit[0]["NETWORK_DATE"];
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadATMDeviceList(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                try {
+                    if (size > 0) {
+                        var vender, device, cnt;
+                        var DATM = 0, DCDM = 0, DCRM = 0, DTotal = 0;
+                        var IATM = 0, ICDM = 0, ICRM = 0, ITotal = 0;
+                        var AATM = 0, ACDM = 0, ACRM = 0, ATotal = 0;
+                        var NATM = 0, NCDM = 0, NCRM = 0, NTotal = 0;
+                        var TotATM = 0, TotCDM = 0, TotCRM = 0, Tot = 0;
+
+                        for (var i = 0; i < size; i++) {
+                            vender = unit[i]["VENDER_NAME"].trim();
+                            device = unit[i]["DIV_TYPE"].trim();
+                            cnt = unit[i]["TOT"];
+
+                            if (vender == "DMS") {
+                                DTotal += cnt;
+                                if (device == "ATM") {
+                                    DATM += cnt;
+                                    TotATM += cnt;
+
+                                } else if (device == "CDM") {
+                                    DCDM += cnt;
+                                    TotCDM += cnt;
+
+                                } else if (device == "CRM") {
+                                    DCRM += cnt;
+                                    TotCRM += cnt;
+                                }
+
+                            } else if (vender == "INFORMATICS") {
+
+                                ITotal += cnt;
+                                if (device == "ATM") {
+                                    IATM += cnt;
+                                    TotATM += cnt;
+
+                                } else if (device == "CDM") {
+                                    ICDM += cnt;
+                                    TotCDM += cnt;
+
+                                } else if (device == "CRM") {
+                                    ICRM += cnt;
+                                    TotCRM += cnt;
+                                }
+
+                            } else if (vender == "AIKEN") {
+
+                                ATotal += cnt;
+                                if (device == "ATM") {
+                                    AATM += cnt;
+                                    TotATM += cnt;
+
+                                } else if (device == "CDM") {
+                                    ACDM += cnt;
+                                    TotCDM += cnt;
+
+                                } else if (device == "CRM") {
+                                    ACRM += cnt;
+                                    TotCRM += cnt;
+                                }
+
+                            }
+//                            else if (vender == "NCR") {
+//
+//                                NTotal += cnt;
+//                                if (device == "ATM") {
+//                                    NATM += cnt;
+//                                    TotATM += cnt;
+//
+//                                } else if (device == "CDM") {
+//                                    NCDM += cnt;
+//                                    TotCDM += cnt;
+//
+//                                } else if (device == "CRM") {
+//                                    NCRM += cnt;
+//                                    TotCRM += cnt;
+//                                }
+//
+//                            }
+                        }
+                        Tot = TotATM + TotCDM + TotCRM;
+
+                        var inputContainer = document.getElementById("atmDeviceList");
+                        var row1 = document.getElementById("DListR2");
+                        var row2 = document.getElementById("DListR3");
+                        var row3 = document.getElementById("DListR4");
+                        var row4 = document.getElementById("DListR5");
+                        var row5 = document.getElementById("DListR6");
+
+                        var R1td1 = document.createElement("td");
+                        var R1a1 = document.createElement('a');
+                        R1a1.innerHTML = DATM;
+                        R1a1.setAttribute('href', "#!");
+                        var R1a1val = "DATM";
+                        R1a1.setAttribute('value', R1a1val);
+                        R1a1.setAttribute('onclick', 'getATMReport_3(this)');
+                        R1td1.appendChild(R1a1);
+                        row1.appendChild(R1td1);
+
+                        var R1td2 = document.createElement("td");
+                        var R1a2 = document.createElement('a');
+                        R1a2.innerHTML = DCDM;
+                        R1a2.setAttribute('href', "#!");
+                        var R1a2val = "DCDM";
+                        R1a2.setAttribute('value', R1a2val);
+                        R1a2.setAttribute('onclick', 'getATMReport_3(this)');
+                        R1td2.appendChild(R1a2);
+                        row1.appendChild(R1td2);
+
+                        var R1td3 = document.createElement("td");
+                        var R1a3 = document.createElement('a');
+                        R1a3.innerHTML = DCRM;
+                        R1a3.setAttribute('href', "#!");
+                        var R1a3val = "DCRM";
+                        R1a3.setAttribute('value', R1a3val);
+                        R1a3.setAttribute('onclick', 'getATMReport_3(this)');
+                        R1td3.appendChild(R1a3);
+                        row1.appendChild(R1td3);
+
+                        var R1td4 = document.createElement("td");
+                        var R1a4 = document.createElement('a');
+                        R1a4.innerHTML = DTotal;
+                        R1a4.setAttribute('href', "#!");
+                        var R1a4val = "DTOT";
+                        R1a4.setAttribute('value', R1a4val);
+                        R1a4.setAttribute('onclick', 'getATMReport_3(this)');
+                        R1td4.appendChild(R1a4);
+                        row1.appendChild(R1td4);
+
+                        inputContainer.appendChild(row1);
+
+                        //******************************
+
+                        var R2td1 = document.createElement("td");
+                        var R2a1 = document.createElement('a');
+                        R2a1.innerHTML = IATM;
+                        R2a1.setAttribute('href', "#!");
+                        var R2a1val = "IATM";
+                        R2a1.setAttribute('value', R2a1val);
+                        R2a1.setAttribute('onclick', 'getATMReport_3(this)');
+                        R2td1.appendChild(R2a1);
+                        row2.appendChild(R2td1);
+
+                        var R2td2 = document.createElement("td");
+                        var R2a2 = document.createElement('a');
+                        R2a2.innerHTML = ICDM;
+                        R2a2.setAttribute('href', "#!");
+                        var R2a2val = "ICDM";
+                        R2a2.setAttribute('value', R2a2val);
+                        R2a2.setAttribute('onclick', 'getATMReport_3(this)');
+                        R2td2.appendChild(R2a2);
+                        row2.appendChild(R2td2);
+
+                        var R2td3 = document.createElement("td");
+                        var R2a3 = document.createElement('a');
+                        R2a3.innerHTML = ICRM;
+                        R2a3.setAttribute('href', "#!");
+                        var R2a3val = "ICRM";
+                        R2a3.setAttribute('value', R2a3val);
+                        R2a3.setAttribute('onclick', 'getATMReport_3(this)');
+                        R2td3.appendChild(R2a3);
+                        row2.appendChild(R2td3);
+
+                        var R2td4 = document.createElement("td");
+                        var R2a4 = document.createElement('a');
+                        R2a4.innerHTML = ITotal;
+                        R2a4.setAttribute('href', "#!");
+                        var R2a4val = "ITOT";
+                        R2a4.setAttribute('value', R2a4val);
+                        R2a4.setAttribute('onclick', 'getATMReport_3(this)');
+                        R2td4.appendChild(R2a4);
+                        row2.appendChild(R2td4);
+
+                        inputContainer.appendChild(row2);
+
+                        //******************************
+
+                        var R3td1 = document.createElement("td");
+                        var R3a1 = document.createElement('a');
+                        R3a1.innerHTML = AATM;
+                        R3a1.setAttribute('href', "#!");
+                        var R3a1val = "AATM";
+                        R3a1.setAttribute('value', R3a1val);
+                        R3a1.setAttribute('onclick', 'getATMReport_3(this)');
+                        R3td1.appendChild(R3a1);
+                        row3.appendChild(R3td1);
+
+                        var R3td2 = document.createElement("td");
+                        var R3a2 = document.createElement('a');
+                        R3a2.innerHTML = ACDM;
+                        R3a2.setAttribute('href', "#!");
+                        var R3a2val = "ACDM";
+                        R3a2.setAttribute('value', R3a2val);
+                        R3a2.setAttribute('onclick', 'getATMReport_3(this)');
+                        R3td2.appendChild(R3a2);
+                        row3.appendChild(R3td2);
+
+                        var R3td3 = document.createElement("td");
+                        var R3a3 = document.createElement('a');
+                        R3a3.innerHTML = ACRM;
+                        R3a3.setAttribute('href', "#!");
+                        var R3a3val = "ACRM";
+                        R3a3.setAttribute('value', R3a3val);
+                        R3a3.setAttribute('onclick', 'getATMReport_3(this)');
+                        R3td3.appendChild(R3a3);
+                        row3.appendChild(R3td3);
+
+                        var R3td4 = document.createElement("td");
+                        var R3a4 = document.createElement('a');
+                        R3a4.innerHTML = ATotal;
+                        R3a4.setAttribute('href', "#!");
+                        var R3a4val = "ATOT";
+                        R3a4.setAttribute('value', R3a4val);
+                        R3a4.setAttribute('onclick', 'getATMReport_3(this)');
+                        R3td4.appendChild(R3a4);
+                        row3.appendChild(R3td4);
+
+                        inputContainer.appendChild(row3);
+
+                        //******************************            
+
+//                        var R4td1 = document.createElement("td");
+//                        var R4a1 = document.createElement('a');
+//                        R4a1.innerHTML = NATM;
+//                        R4a1.setAttribute('href', "#!");
+//                        var R4a1val = "NATM";
+//                        R4a1.setAttribute('value', R4a1val);
+//                        R4a1.setAttribute('onclick', 'getATMReport_3(this)');
+//                        R4td1.appendChild(R4a1);
+//                        row4.appendChild(R4td1);
+//
+//                        var R4td2 = document.createElement("td");
+//                        var R4a2 = document.createElement('a');
+//                        R4a2.innerHTML = NCDM;
+//                        R4a2.setAttribute('href', "#!");
+//                        var R4a2val = "NCDM";
+//                        R4a2.setAttribute('value', R4a2val);
+//                        R4a2.setAttribute('onclick', 'getATMReport_3(this)');
+//                        R4td2.appendChild(R4a2);
+//                        row4.appendChild(R4td2);
+//
+//                        var R4td3 = document.createElement("td");
+//                        var R4a3 = document.createElement('a');
+//                        R4a3.innerHTML = NCRM;
+//                        R4a3.setAttribute('href', "#!");
+//                        var R4a3val = "NCRM";
+//                        R4a3.setAttribute('value', R4a3val);
+//                        R4a3.setAttribute('onclick', 'getATMReport_3(this)');
+//                        R4td3.appendChild(R4a3);
+//                        row4.appendChild(R4td3);
+//
+//                        var R4td4 = document.createElement("td");
+//                        var R4a4 = document.createElement('a');
+//                        R4a4.innerHTML = NTotal;
+//                        R4a4.setAttribute('href', "#!");
+//                        var R4a4val = "NTOT";
+//                        R4a4.setAttribute('value', R4a4val);
+//                        R4a4.setAttribute('onclick', 'getATMReport_3(this)');
+//                        R4td4.appendChild(R4a4);
+//                        row4.appendChild(R4td4);
+//
+//                        inputContainer.appendChild(row4);
+
+                        //******************************                        
+                        var R5td1 = document.createElement("td");
+                        var R5a1 = document.createElement('a');
+                        R5a1.innerHTML = TotATM;
+                        R5a1.setAttribute('href', "#!");
+                        var R5a1val = "TotATM";
+                        R5a1.setAttribute('value', R5a1val);
+                        R5a1.setAttribute('onclick', 'getATMReport_3(this)');
+                        R5td1.appendChild(R5a1);
+                        row5.appendChild(R5td1);
+
+                        var R5td2 = document.createElement("td");
+                        var R5a2 = document.createElement('a');
+                        R5a2.innerHTML = TotCDM;
+                        R5a2.setAttribute('href', "#!");
+                        var R5a2val = "TotCDM";
+                        R5a2.setAttribute('value', R5a2val);
+                        R5a2.setAttribute('onclick', 'getATMReport_3(this)');
+                        R5td2.appendChild(R5a2);
+                        row5.appendChild(R5td2);
+
+                        var R5td3 = document.createElement("td");
+                        var R5a3 = document.createElement('a');
+                        R5a3.innerHTML = TotCRM;
+                        R5a3.setAttribute('href', "#!");
+                        var R5a3val = "TotCRM";
+                        R5a3.setAttribute('value', R5a3val);
+                        R5a3.setAttribute('onclick', 'getATMReport_3(this)');
+                        R5td3.appendChild(R5a3);
+                        row5.appendChild(R5td3);
+
+                        var R5td4 = document.createElement("td");
+                        var R5a4 = document.createElement('a');
+                        R5a4.innerHTML = Tot;
+                        R5a4.setAttribute('href', "#!");
+                        var R5a4val = "Tot";
+                        R5a4.setAttribute('value', R5a4val);
+                        R5a4.setAttribute('onclick', 'getATMReport_3(this)');
+                        R5td4.appendChild(R5a4);
+                        row5.appendChild(R5td4);
+
+                        inputContainer.appendChild(row5);
+
+                        //******************************
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadATMUpdatedTime(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                try {
+                    if (size > 0) {
+                        document.getElementById('lupdate').innerHTML = unit[0]["LAST_UPDATE"].slice(0, -2);
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadLastATMAdded(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                try {
+                    if (size > 0) {
+                        document.getElementById('AtmUpdate').innerHTML = unit[0]["LAST_UPDATED"];
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function loadDashboardDetails_1_2(jason_data) {
+                var unit = jason_data.data;
+                var size = unit.length;
+                try {
+                    if (size > 0) {
+                        var onlinecount = parseFloat(unit[0]["ONCNT"]);
+                        var offlinecount = parseFloat(unit[1]["OFFCNT"]);
+                        var totalNetwork = onlinecount + offlinecount;
+                        var onlinePer = ((onlinecount / totalNetwork) * 100).toFixed(2);
+                        var offlinePer = ((offlinecount / totalNetwork) * 100).toFixed(2);
+
+                        var okcount = parseFloat(unit[2]["OKCNT"]);
+                        var flt0count = parseFloat(unit[3]["FLT0CNT"]);
+                        var fltcount = parseFloat(unit[4]["FLTCNT"]);
+
+                        var totalonline = okcount + flt0count + fltcount;
+
+                        var okPer = ((okcount / totalonline) * 100).toFixed(2);
+                        var flt0Per = ((flt0count / totalonline) * 100).toFixed(2);
+                        var fltPer = ((fltcount / totalonline) * 100).toFixed(2);
+
+                        //chart1
+                        var xValues = ["Up - " + onlinecount + "(" + onlinePer + "%)", "Out Of Service - " + offlinecount + "(" + offlinePer + "%)"];
+                        var yValues = [onlinePer, offlinePer];
+                        var barColors = [
+                            "#68ca9b",
+                            "#ea4444"
+                        ];
+
+                        var mychart1 = new Chart("chart1", {
+                            type: "pie",
+                            data: {
+                                labels: xValues,
+                                datasets: [{
+                                        backgroundColor: barColors,
+                                        data: yValues
+                                    }]
+                            },
+                            options: {
+//                                title: {
+//                                    display: true,
+//                                    text: 'ATMs Up/Out Of Service',
+//                                    fontSize: 16
+//                                },
+                                legend: {
+                                    position: "right",
+                                    display: true
+                                },
+                                tooltips: {
+                                    enabled: true,
+                                    callbacks: {
+                                        label: function (tooltipItem, data) {
+                                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                                            var yValue = dataset.data[tooltipItem.index];//                                          
+                                            return yValue + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        mychart1.legend.options.onClick = function (e, legendItem) {
+                            if (legendItem.index == 0) {
+                                getATMReport_1_2("online");
+                            } else if (legendItem.index == 1) {
+                                getATMReport_1_2("offline");
+                            }
+                        };
+
+                        //Chart 2
+                        var xValues2 = ["No Fault - " + okcount + "(" + okPer + "%)", "Minor Issues - " + flt0count + "(" + flt0Per + "%)", "Critical Issues - " + fltcount + "(" + fltPer + "%)"];
+                        var yValues2 = [okPer, flt0Per, fltPer];
+                        var barColors2 = [
+                            "#68ca9b",
+                            "#ffee58",
+                            "#ea4444"
+                        ];
+
+                        var mychart2 = new Chart("chart2", {
+                            type: "pie",
+                            data: {
+                                labels: xValues2,
+                                datasets: [{
+                                        backgroundColor: barColors2,
+                                        data: yValues2
+                                    }]
+                            },
+                            options: {
+                                legend: {
+                                    position: "right",
+                                    display: true
+                                },
+                                tooltips: {
+                                    enabled: true,
+                                    callbacks: {
+                                        label: function (tooltipItem, data) {
+                                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                                            var yValue = dataset.data[tooltipItem.index];//                                          
+                                            return yValue + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        mychart2.legend.options.onClick = function (e, legendItem) {
+                            if (legendItem.index == 0) {
+                                getATMReport_1_2("ok");
+                            } else if (legendItem.index == 1) {
+                                getATMReport_1_2("flt0");
+                            } else if (legendItem.index == 2) {
+                                getATMReport_1_2("flt");
+                            }
+                        };
+
+                    }
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+        </script>        
+
+        <script>
+            function getATMReport_1_2(e2) {
+//                var chkVal = e2.getAttribute('value');
+                var chkVal = e2.trim();
+                var qry;
+
+                if (chkVal == "online") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Up ATM List";
+                    qry = "(substr(err_code,-1)=1 and SUBSTR(err_code, LENGTH(err_code) - 2, 1)=1) ";
+                } else if (chkVal == "offline") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Down ATM List";
+                    qry = "(substr(err_code,-1)=0 or SUBSTR(err_code, LENGTH(err_code) - 2, 1)=0) ";
+                } else if (chkVal == "ok") {
+                    document.getElementById('atmstatusHeader').innerHTML = "No Fault ATM List";
+                    qry = "(substr(err_code,-1)=1 and SUBSTR(err_code, LENGTH(err_code) - 2, 1)=1) and FLT_COUNT=0 ";
+                } else if (chkVal == "flt0") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Minor Issues ATM List";
+                    qry = "(substr(err_code,-1)=1 and SUBSTR(err_code, LENGTH(err_code) - 2, 1)=1) and (CRITICALITY=0 and FLT_COUNT>0) ";
+                } else if (chkVal == "flt") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Critical Issues ATM List";
+                    qry = "(substr(err_code,-1)=1 and SUBSTR(err_code, LENGTH(err_code) - 2, 1)=1) and CRITICALITY>0 ";
+                } else if (chkVal == "cstEmpty") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Three or More Cassette Empty List";
+                    qry = "((protocol=2 and ((substr(err_code,1,1) in('3') and substr(err_code,3,1) in('3') and substr(err_code,5,1) in('3')) or "
+                            + "(substr(err_code,1,1) in('3') and substr(err_code,3,1) in('3') and substr(err_code,7,1) in('3')) or "
+                            + "(substr(err_code,3,1) in('3') and substr(err_code,5,1) in('3') and substr(err_code,7,1) in('3')) or "
+                            + "(substr(err_code,1,1) in('3') and substr(err_code,5,1) in('3') and substr(err_code,7,1) in('3'))  )) "
+                            + "or "
+                            + "(protocol!=2 and ((substr(err_code,1,1) in('2') and substr(err_code,3,1) in('2') and substr(err_code,5,1) in('2')) or "
+                            + "(substr(err_code,1,1) in('2') and substr(err_code,3,1) in('2') and substr(err_code,7,1) in('2')) or "
+                            + "(substr(err_code,3,1) in('2') and substr(err_code,5,1) in('2') and substr(err_code,7,1) in('2')) or "
+                            + "(substr(err_code,1,1) in('2') and substr(err_code,5,1) in('2') and substr(err_code,7,1) in('2'))  ))) ";
+                } else if (chkVal == "AllCstFault") {
+                    document.getElementById('atmstatusHeader').innerHTML = "All Cassette Fault List";
+                    qry = "(protocol!=2 and substr(err_code,1,1) in('9') and substr(err_code,3,1) in('9') "
+                            + "and substr(err_code,5,1) in('9') and substr(err_code,7,1) in('9')) ";
+                } else if (chkVal == "rcptFault") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Receipt Printer Fault/Empty List (CRM)";
+                    qry = "((protocol=2 and (substr(err_code,9,1) in('3'))) or "
+                            + "(protocol=1 and div_type in ('CDM','CRM') and (substr(err_code,9,1) in('2','3')))) ";
+                } else if (chkVal == "pinFault") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Pin Pad Fault List";
+                    qry = "((protocol=2 and (substr(err_code,11,1) in('4'))) or "
+                            + "(protocol!=2 and (substr(err_code,11,1) in('1')))) ";
+                } else if (chkVal == "acceptorFault") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Curruncy Acceptor/Drawer Fault List";
+                    qry = "((protocol=1 and div_type='ATM' and (substr(err_code,13,1) not in('0'))) or "
+                            + "(protocol=1 and div_type in('CDM','CRM') and (substr(err_code,13,1) in('3'))) or "
+                            + "(protocol=2 and (substr(err_code,13,3) in('140','440')))) ";
+                } else if (chkVal == "cardFault") {
+                    document.getElementById('atmstatusHeader').innerHTML = "Card Reader Fault List";
+                    qry = "((protocol=2 and (substr(err_code,17,1) not in('0'))) or "
+                            + "(protocol!=2 and (substr(err_code,15,1) not in('0')))) ";
+                }
+
+
+                getDashboardSeparate(qry);
+
+            }
+
+            function loadDashboardSep(jsonData) {
+                try {
+
+                    const pagination = document.getElementById('pagination');
+                    const filterInput = document.getElementById('myInput');
+                    let data = jsonData.data;
+                    let filteredData = [];
+                    let currentPage = 1;
+                    const itemsPerPage = 7;
+
+                    var searchVal = document.getElementById("myInput");
+                    searchVal.value = '';
+                    if (jsonData.data.length > 0) {
+                        document.getElementById('cnt').innerHTML = jsonData.data.length;
+                        filterData('');
+                        displayTableData(paginateData(data, currentPage, itemsPerPage));
+                        const totalPages = Math.ceil(data.length / itemsPerPage);
+                        displayPagination(totalPages);
+                        $('#myModalViewSeparate').modal({show: true});
+                    }
+
+                    function displayTableData(unit) {
+
+                        var size = unit.length;
+                        try {
+                            var inputContainer = document.getElementById("atmstatusbody");
+                            inputContainer.innerHTML = '';
+                            var imgOk = "fa-check";
+                            var imgOkToolTip = "NO FAULT";
+                            var imgOkColor = '#4aab4d';
+                            var imgEmpty = "fa-minus-circle";
+                            var imgEmptyToolTip = "EMPTY";
+                            var imgEmptyColor = '#a2231c';
+                            var imgFault = "fa-remove";
+                            var imgFaultToolTip = "FAULT";
+                            var imgFaultColor = '#a2231c';
+                            var imgLow = "fa-warning";
+                            var imgLowToolTip = "LOW";
+                            var imgLowColor = '#e46915';
+                            var imgNotPresent = "fa-info-circle";
+                            var imgNotPresentToolTip = "Not Present";
+                            var imgNotPresentColor = '#24436c';
+                            var imgOverFill = "fa-trash";
+                            var imgOverFillToolTip = "Over Fill";
+                            var imgOverFillColor = '#a2231c';
+                            var imgDate = "fa-calendar";
+                            var imgMoney = "fa-money";
+                            var imgMoneyToolTip = "Money Left";
+                            var imgMoneyColor = '#a2231c';
+                            var imgSMS = "fa-envelope-o";
+                            var imgCST = "fa-hdd-o";
+                            var imgCall = "fa-phone";
+                            var imgDetails = "fa-edit";
+
+                            if (size > 0) {
+                                var table = document.getElementById('atmstatus');
+                                var existingThead = table.querySelector('thead');
+                                if (existingThead) {
+                                    table.removeChild(existingThead);
+                                }
+                                var thead = document.createElement('thead');
+                                var headerRow = document.createElement('tr');
+                                var headers = ['ATM', 'BR CODE', 'BRANCH', 'LOCATION',
+                                    'D/T', 'CST1', 'CST2', 'CST3', 'CST4', 'R/P', 'P/P', 'M/D,C/A', 'C/R', 'STAT', 'STATE'];
+                                var titles = ['Station Name', 'Branch Code', 'Branch', 'Location'
+                                            , 'TXN Date & Time', 'Cassette 1', 'Cassette 2', 'Cassette 3', 'Cassette 4'
+                                            , 'Receipt Printer', 'Pin Pad', 'Money Drawer/Curruncy Acceptor'
+                                            , 'Card Reader', 'STAT', 'STATE11'];
+
+                                headers.forEach(function (headerText, index) {
+                                    var th = document.createElement('th');
+                                    th.textContent = headerText;
+                                    th.setAttribute('title', titles[index]); // Set the title attribute
+                                    headerRow.appendChild(th);
+                                });
+                                thead.appendChild(headerRow);
+                                table.appendChild(thead);
+                            }
+
+                            for (var i = 0; i < size; i++) {
+
+                                var imgcst1, imgcst2, imgcst3, imgcst4, imgrcpt, imgsup, imgpin, imgdrawer, imgcard, imgstat, imgstate;
+                                var tipcst1, tipcst2, tipcst3, tipcst4, tiprcpt, tipsup, tippin, tipdrawer, tipcard, tipstat, tipstate;
+                                var colorcst1, colorcst2, colorcst3, colorcst4, colorrcpt, colorsup, colorpin, colordrawer, colorcard, colorstat, colorstate;
+
+                                var atm = unit[i]["STATION"];
+                                var err_code = unit[i]["ERR_CODE"];
+                                var location = unit[i]["LOCATION"];
+                                var div = unit[i]["DIV_TYPE"];
+                                var update = unit[i]["LAST_UPDATE"];
+                                if (update) {
+                                    update = update.slice(0, -2);
+                                }
+                                var model = unit[i]["MODEL_NAME"];
+                                var ip = unit[i]["IP"];
+                                var protocol = unit[i]["PROTOCOL"];
+                                var vender = unit[i]["VENDER_NAME"];
+                                var province = unit[i]["PROVINCE_NAME"];
+                                var brName = unit[i]["BR_NAME"];
+                                var brCode = unit[i]["BR_CODE"];
+                                var err = err_code.split(" ");
+
+                                var cas1 = err[0];
+                                var cas2 = err[1];
+                                var cas3 = err[2];
+                                var cas4 = err[3];
+                                var rcpt = err[4];
+                                var pinpad = err[5];
+                                var moneyDrawer = err[6];
+                                var cardreader = err[7];
+                                var stat = err[8];
+                                var state = err[9];
+
+                                if (protocol == 2) {
+                                    if (cas1 == 0 || cas1 == 5) {
+                                        imgcst1 = imgNotPresent;
+                                        tipcst1 = "CASSETTE 1: " + imgNotPresentToolTip;
+                                        colorcst1 = imgNotPresentColor;
+                                    } else if (cas1 == 1) {
+                                        imgcst1 = imgOk;
+                                        tipcst1 = "CASSETTE 1: " + imgOkToolTip;
+                                        colorcst1 = imgOkColor;
+                                    } else if (cas1 == 2) {
+                                        imgcst1 = imgLow;
+                                        tipcst1 = "CASSETTE 1: " + imgLowToolTip;
+                                        colorcst1 = imgLowColor;
+                                    } else if (cas1 == 3) {
+                                        imgcst1 = imgEmpty;
+                                        tipcst1 = "CASSETTE 1: " + imgEmptyToolTip;
+                                        colorcst1 = imgEmptyColor;
+                                    }
+
+                                    if (cas2 == 0 || cas2 == 5) {
+                                        imgcst2 = imgNotPresent;
+                                        tipcst2 = "CASSETTE 2: " + imgNotPresentToolTip;
+                                        colorcst2 = imgNotPresentColor;
+                                    } else if (cas2 == 1) {
+                                        imgcst2 = imgOk;
+                                        tipcst2 = "CASSETTE 2: " + imgOkToolTip;
+                                        colorcst2 = imgOkColor;
+                                    } else if (cas2 == 2) {
+                                        imgcst2 = imgLow;
+                                        tipcst2 = "CASSETTE 2: " + imgLowToolTip;
+                                        colorcst2 = imgLowColor;
+                                    } else if (cas2 == 3) {
+                                        imgcst2 = imgEmpty;
+                                        tipcst2 = "CASSETTE 2: " + imgEmptyToolTip;
+                                        colorcst2 = imgEmptyColor;
+                                    }
+
+                                    if (cas3 == 0 || cas3 == 5) {
+                                        imgcst3 = imgNotPresent;
+                                        tipcst3 = "CASSETTE 3: " + imgNotPresentToolTip;
+                                        colorcst3 = imgNotPresentColor;
+                                    } else if (cas3 == 1) {
+                                        imgcst3 = imgOk;
+                                        tipcst3 = "CASSETTE 3: " + imgOkToolTip;
+                                        colorcst3 = imgOkColor;
+                                    } else if (cas3 == 2) {
+                                        imgcst3 = imgLow;
+                                        tipcst3 = "CASSETTE 3: " + imgLowToolTip;
+                                        colorcst3 = imgLowColor;
+                                    } else if (cas3 == 3) {
+                                        imgcst3 = imgEmpty;
+                                        tipcst3 = "CASSETTE 3: " + imgEmptyToolTip;
+                                        colorcst3 = imgEmptyColor;
+                                    }
+
+                                    if (cas4 == 0 || cas4 == 5) {
+                                        imgcst4 = imgNotPresent;
+                                        tipcst4 = "CASSETTE 4: " + imgNotPresentToolTip;
+                                        colorcst4 = imgNotPresentColor;
+                                    } else if (cas4 == 1) {
+                                        imgcst4 = imgOk;
+                                        tipcst4 = "CASSETTE 4: " + imgOkToolTip;
+                                        colorcst4 = imgOkColor;
+                                    } else if (cas4 == 2) {
+                                        imgcst4 = imgLow;
+                                        tipcst4 = "CASSETTE 4: " + imgLowToolTip;
+                                        colorcst4 = imgLowColor;
+                                    } else if (cas4 == 3) {
+                                        imgcst4 = imgEmpty;
+                                        tipcst4 = "CASSETTE 4: " + imgEmptyToolTip;
+                                        colorcst4 = imgEmptyColor;
+                                    }
+
+                                    if (rcpt == 1) {
+                                        imgrcpt = imgOk;
+                                        tiprcpt = "RCPT PRNT: " + imgOkToolTip;
+                                        colorrcpt = imgOkColor;
+                                    } else if (rcpt == 2) {
+                                        imgrcpt = imgLow;
+                                        tiprcpt = "RCPT PRNT: " + imgLowToolTip;
+                                        colorrcpt = imgLowColor;
+                                    } else if (rcpt == 3) {
+                                        imgrcpt = imgFault;
+                                        tiprcpt = "RCPT PRNT: " + imgFaultToolTip;
+                                        colorrcpt = imgFaultColor;
+                                    }
+
+                                    if (pinpad == 0) {
+                                        imgpin = imgOk;
+                                        tippin = "PIN PAD: " + imgOkToolTip;
+                                        colorpin = imgOkColor;
+                                    } else if (pinpad == 4) {
+                                        imgpin = imgFault;
+                                        tippin = "PIN PAD: " + imgFaultToolTip;
+                                        colorpin = imgFaultColor;
+                                    }
+
+                                    if (moneyDrawer == 100 || moneyDrawer == 300) {
+                                        imgdrawer = imgOk;
+                                        tipdrawer = "CURRENCY ACCEPTOR: " + imgOkToolTip;
+                                        colordrawer = imgOkColor;
+                                    } else if (moneyDrawer == 440) {
+                                        imgdrawer = imgOverFill;
+                                        tipdrawer = "REJECT BIN: " + imgOverFillToolTip;
+                                        colordrawer = imgOverFillColor;
+                                    } else if (moneyDrawer == 140) {
+                                        imgdrawer = imgFault;
+                                        tipdrawer = "CURRENCY ACCEPTOR: " + imgFaultToolTip;
+                                        colordrawer = imgFaultColor;
+                                    }
+
+                                    if (cardreader == 0) {
+                                        imgcard = imgOk;
+                                        tipcard = "CARD READER: " + imgOkToolTip;
+                                        colorcard = imgOkColor;
+                                    } else if (cardreader == 4) {
+                                        imgcard = imgFault;
+                                        tipcard = "CARD READER: " + imgFaultToolTip;
+                                        colorcard = imgFaultColor;
+                                    }
+
+                                    if (stat == 0) {
+                                        imgstat = imgFault;
+                                        tipstat = "DOWN";
+                                        colorstat = imgFaultColor;
+                                    } else if (stat == 1) {
+                                        imgstat = imgOk;
+                                        tipstat = "UP";
+                                        colorstat = imgOkColor;
+                                    }
+
+                                    if (state == 0) {
+                                        imgstate = imgFault;
+                                        tipstate = "CLOSED";
+                                        colorstate = imgFaultColor;
+                                    } else if (state == 1) {
+                                        imgstate = imgOk;
+                                        tipstate = "OPEN";
+                                        colorstate = imgOkColor;
+                                    }
+
+                                } else {
+                                    if (cas1 == 0) {
+                                        imgcst1 = imgOk;
+                                        tipcst1 = "CASSETTE 1: " + imgOkToolTip;
+                                        colorcst1 = imgOkColor;
+                                    } else if (cas1 == 1) {
+                                        imgcst1 = imgLow;
+                                        tipcst1 = "CASSETTE 1: " + imgLowToolTip;
+                                        colorcst1 = imgLowColor;
+                                    } else if (cas1 == 2) {
+                                        imgcst1 = imgEmpty;
+                                        tipcst1 = "CASSETTE 1: " + imgEmptyToolTip;
+                                        colorcst1 = imgEmptyColor;
+                                    } else if (cas1 == 9) {
+                                        imgcst1 = imgFault;
+                                        tipcst1 = "CASSETTE 1: " + imgFaultToolTip;
+                                        colorcst1 = imgFaultColor;
+                                    } else if (cas1 == 5) {
+                                        imgcst1 = imgNotPresent;
+                                        tipcst1 = "CASSETTE 1: " + imgNotPresentToolTip;
+                                        colorcst1 = imgNotPresentColor;
+                                    }
+
+                                    if (cas2 == 0) {
+                                        imgcst2 = imgOk;
+                                        tipcst2 = "CASSETTE 2: " + imgOkToolTip;
+                                        colorcst2 = imgOkColor;
+                                    } else if (cas2 == 1) {
+                                        imgcst2 = imgLow;
+                                        tipcst2 = "CASSETTE 2: " + imgLowToolTip;
+                                        colorcst2 = imgLowColor;
+                                    } else if (cas2 == 2) {
+                                        imgcst2 = imgEmpty;
+                                        tipcst2 = "CASSETTE 2: " + imgEmptyToolTip;
+                                        colorcst2 = imgEmptyColor;
+                                    } else if (cas2 == 9) {
+                                        imgcst2 = imgFault;
+                                        tipcst2 = "CASSETTE 2: " + imgFaultToolTip;
+                                        colorcst2 = imgFaultColor;
+                                    } else if (cas2 == 5) {
+                                        imgcst2 = imgNotPresent;
+                                        tipcst2 = "CASSETTE 2: " + imgNotPresentToolTip;
+                                        colorcst2 = imgNotPresentColor;
+                                    }
+
+                                    if (cas3 == 0) {
+                                        imgcst3 = imgOk;
+                                        tipcst3 = "CASSETTE 3: " + imgOkToolTip;
+                                        colorcst3 = imgOkColor;
+                                    } else if (cas3 == 1) {
+                                        imgcst3 = imgLow;
+                                        tipcst3 = "CASSETTE 3: " + imgLowToolTip;
+                                        colorcst3 = imgLowColor;
+                                    } else if (cas3 == 2) {
+                                        imgcst3 = imgEmpty;
+                                        tipcst3 = "CASSETTE 3: " + imgEmptyToolTip;
+                                        colorcst3 = imgEmptyColor;
+                                    } else if (cas3 == 9) {
+                                        imgcst3 = imgFault;
+                                        tipcst3 = "CASSETTE 3: " + imgFaultToolTip;
+                                        colorcst3 = imgFaultColor;
+                                    } else if (cas3 == 5) {
+                                        imgcst3 = imgNotPresent;
+                                        tipcst3 = "CASSETTE 3: " + imgNotPresentToolTip;
+                                        colorcst3 = imgNotPresentColor;
+                                    }
+
+                                    if (cas4 == 0) {
+                                        imgcst4 = imgOk;
+                                        tipcst4 = "CASSETTE 4: " + imgOkToolTip;
+                                        colorcst4 = imgOkColor;
+                                    } else if (cas4 == 1) {
+                                        imgcst4 = imgLow;
+                                        tipcst4 = "CASSETTE 4: " + imgLowToolTip;
+                                        colorcst4 = imgLowColor;
+                                    } else if (cas4 == 2) {
+                                        imgcst4 = imgEmpty;
+                                        tipcst4 = "CASSETTE 4: " + imgEmptyToolTip;
+                                        colorcst4 = imgEmptyColor;
+                                    } else if (cas4 == 9) {
+                                        imgcst4 = imgFault;
+                                        tipcst4 = "CASSETTE 4: " + imgFaultToolTip;
+                                        colorcst4 = imgFaultColor;
+                                    } else if (cas4 == 5) {
+                                        imgcst4 = imgNotPresent;
+                                        tipcst4 = "CASSETTE 4: " + imgNotPresentToolTip;
+                                        colorcst4 = imgNotPresentColor;
+                                    }
+
+                                    if (rcpt == 0) {
+                                        imgrcpt = imgOk;
+                                        tiprcpt = "RCPT PRNT: " + imgOkToolTip;
+                                        colorrcpt = imgOkColor;
+                                    } else if (rcpt == 1) {
+                                        imgrcpt = imgLow;
+                                        tiprcpt = "RCPT PRNT: " + imgLowToolTip;
+                                        colorrcpt = imgLowColor;
+                                    } else if (rcpt == 2) {
+                                        imgrcpt = imgEmpty;
+                                        tiprcpt = "RCPT PRNT: " + imgEmptyToolTip;
+                                        colorrcpt = imgEmptyColor;
+                                    } else if (rcpt == 3) {
+                                        imgrcpt = imgFault;
+                                        tiprcpt = "RCPT PRNT: " + imgFaultToolTip;
+                                        colorrcpt = imgFaultColor;
+                                    }
+
+                                    if (pinpad == 0 || pinpad == 9) {
+                                        imgpin = imgOk;
+                                        tippin = "PIN PAD: " + imgOkToolTip;
+                                        colorpin = imgOkColor;
+                                    } else if (pinpad == 1) {
+                                        imgpin = imgFault;
+                                        tippin = "PIN PAD: " + imgFaultToolTip;
+                                        colorpin = imgFaultColor;
+                                    }
+
+                                    if (div == "ATM") {
+                                        if (moneyDrawer == 0) {
+                                            imgdrawer = imgOk;
+                                            tipdrawer = "MONEY DRAWER: " + imgOkToolTip;
+                                            colordrawer = imgOkColor;
+                                        } else if (moneyDrawer == 2) {
+                                            imgdrawer = imgMoney;
+                                            tipdrawer = "MONEY DRAWER: " + imgMoneyToolTip;
+                                            colordrawer = imgMoneyColor;
+                                        } else if (moneyDrawer == 1) {
+                                            imgdrawer = imgFault;
+                                            tipdrawer = "MONEY DRAWER: " + imgFaultToolTip;
+                                            colordrawer = imgFaultColor;
+                                        }
+
+                                    } else {
+                                        if (moneyDrawer == 0 || moneyDrawer == 1) {
+                                            imgdrawer = imgOk;
+                                            tipdrawer = "CURRENCY ACCEPTOR: " + imgOkToolTip;
+                                            colordrawer = imgOkColor;
+                                        } else if (moneyDrawer == 3) {
+                                            imgdrawer = imgFault;
+                                            tipdrawer = "CURRENCY ACCEPTOR: " + imgFaultToolTip;
+                                            colordrawer = imgFaultColor;
+                                        }
+
+                                    }
+
+                                    if (cardreader == 0) {
+                                        imgcard = imgOk;
+                                        tipcard = "CARD READER: " + imgOkToolTip;
+                                        colorcard = imgOkColor;
+                                    } else if (cardreader == 1) {
+                                        imgcard = imgFault;
+                                        tipcard = "CARD READER: " + imgFaultToolTip;
+                                        colorcard = imgFaultColor;
+                                    }
+
+                                    if (stat == 0) {
+                                        imgstat = imgFault;
+                                        tipstat = "DOWN";
+                                        colorstat = imgFaultColor;
+                                    } else if (stat == 1) {
+                                        imgstat = imgOk;
+                                        tipstat = "UP";
+                                        colorstat = imgOkColor;
+                                    }
+
+                                    if (state == 0) {
+                                        imgstate = imgFault;
+                                        tipstate = "CLOSED";
+                                        colorstate = imgFaultColor;
+                                    } else if (state == 1) {
+                                        imgstate = imgOk;
+                                        tipstate = "OPEN";
+                                        colorstate = imgOkColor;
+                                    }
+
+                                }
+                                //**************************
+
+                                var row1 = document.createElement("tr");
+
+                                var tooltipval = "ATM : " + atm + "\n" +
+                                        "Model : " + model + "\n" +
+                                        "Vender : " + vender + "\n" +
+                                        "Ip : " + ip + "\n";
+                                var td1 = document.createElement("td");
+                                var td1Text = document.createTextNode(atm);
+                                td1.style.cssText = "text-align: left;";
+                                td1.appendChild(td1Text);
+                                td1.title = tooltipval;
+                                row1.appendChild(td1);
+
+                                var brCde = "";
+                                if (brCode) {
+                                    brCde = brCode.toString();
+                                }
+
+                                if (brCde.length == 1) {
+                                    brCde = "00" + brCde;
+                                } else if (brCde.length == 2) {
+                                    brCde = "0" + brCde;
+                                } else if (brCde.length == 0) {
+                                    brCde = "___";
+                                }
+
+                                var td2a = document.createElement("td");
+                                var td2aText = document.createTextNode(brCde);
+                                td2a.style.cssText = "text-align: center;";
+                                td2a.appendChild(td2aText);
+                                row1.appendChild(td2a);
+
+                                var td2 = document.createElement("td");
+                                var td2Text = document.createTextNode(brName);
+                                td2.style.cssText = "text-align: left;";
+                                td2.appendChild(td2Text);
+                                row1.appendChild(td2);
+
+                                var td2b = document.createElement("td");
+                                var td2bText = document.createTextNode(isObjectEmpty(location));
+                                td2b.appendChild(td2bText);
+                                td2b.style = 'white-space: nowrap;text-align: left;';
+                                row1.appendChild(td2b);
+
+                                addIconstoRows(imgDate, update, row1);
+                                addIconstoRows(imgcst1, tipcst1, row1, colorcst1);
+                                addIconstoRows(imgcst2, tipcst2, row1, colorcst2);
+                                addIconstoRows(imgcst3, tipcst3, row1, colorcst3);
+                                addIconstoRows(imgcst4, tipcst4, row1, colorcst4);
+                                addIconstoRows(imgrcpt, tiprcpt, row1, colorrcpt);
+                                addIconstoRows(imgpin, tippin, row1, colorpin);
+                                addIconstoRows(imgdrawer, tipdrawer, row1, colordrawer);
+                                addIconstoRows(imgcard, tipcard, row1, colorcard);
+                                addIconstoRows(imgstat, tipstat, row1, colorstat);
+                                addIconstoRows(imgstate, tipstate, row1, colorstate);
+
+                                inputContainer.appendChild(row1);
+
+                            }
+                        } catch (e) {
+                            alertBox('Error! - ' + e, 'e');
+                        }
+                    }
+
+                    function paginateData(data, currentPage, itemsPerPage) {
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        return data.slice(startIndex, endIndex);
+                    }
+
+                    function displayPagination(totalPages) {
+
+                        pagination.innerHTML = ''; // Clear previous content                    
+
+                        const prevButton = document.createElement('button');
+                        prevButton.textContent = 'Previous';
+                        prevButton.addEventListener('click', function () {
+                            if (currentPage > 1) {
+                                currentPage--;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            }
+                        });
+                        pagination.appendChild(prevButton);
+
+                        // Display first few pages
+                        for (let i = 1; i <= Math.min(3, totalPages); i++) {
+                            const pageButton = document.createElement('button');
+                            pageButton.textContent = i;
+                            pageButton.addEventListener('click', function () {
+                                currentPage = i;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            });
+                            pagination.appendChild(pageButton);
+                        }
+
+                        const dots = document.createElement('span');
+                        dots.textContent = '     ';
+                        pagination.appendChild(dots);
+
+                        const currentPageSpan = document.createElement('span');
+                        var statusStyle = "background:#003953;border:none;color:#ffffff;padding:5px;";
+                        currentPageSpan.style = statusStyle;
+                        currentPageSpan.textContent = currentPage;
+                        pagination.appendChild(currentPageSpan);
+
+                        const dots1 = document.createElement('span');
+                        dots1.textContent = '     ';
+                        pagination.appendChild(dots1);
+
+                        // Display last few pages
+                        for (let i = Math.max(totalPages - 2, 1); i <= totalPages; i++) {
+                            const pageButton = document.createElement('button');
+                            pageButton.textContent = i;
+                            pageButton.addEventListener('click', function () {
+                                currentPage = i;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            });
+                            pagination.appendChild(pageButton);
+                        }
+
+                        const nextButton = document.createElement('button');
+                        nextButton.textContent = 'Next';
+                        nextButton.addEventListener('click', function () {
+                            if (currentPage < totalPages) {
+                                currentPage++;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            }
+                        });
+                        pagination.appendChild(nextButton);
+
+                    }
+
+                    function filterData(searchTerm) {
+
+                        if (searchTerm.trim() === '') {
+                            filteredData = data;
+                        } else {
+                            filteredData = data.filter(item => {
+                                for (let key in item) {
+                                    const value = String(item[key]).toLowerCase();
+                                    if (value.includes(searchTerm.toLowerCase())) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            });
+                        }
+
+                        currentPage = 1; // Reset to first page
+                        displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                        displayPagination(totalPages);
+                    }
+
+//                    function filterData(searchTerm) {
+//                        if (searchTerm.trim() === '') {
+//                            filteredData = data;
+//                        } else {
+//                            filteredData = data.filter(item => {
+//                                for (let key in item) {
+//                                    if (item[key].toString().toLowerCase().includes(searchTerm)) {
+//                                        return true;
+//                                    }
+//                                }
+//                                return false;
+//                            });
+//                        }
+//
+//                        currentPage = 1; // Reset to first page
+//                        displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+//                        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+//                        displayPagination(totalPages);
+//                    }
+//
+                    filterInput.addEventListener('keyup', function () {
+                        const searchTerm = filterInput.value.trim().toLowerCase();
+                        filterData(searchTerm);
+                    });
+
+                    function addIconstoRows(faicon, title, row, iconColor) {
+                        var td = document.createElement("td");
+                        var icon = document.createElement("i");
+                        icon.classList.add("fa", faicon);
+                        icon.setAttribute("title", title);
+                        icon.style.fontSize = '25px';
+                        icon.style.color = iconColor;
+                        td.appendChild(icon);
+                        row.appendChild(td);
+                    }
+
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+            function getATMReport_3(e2) {
+                var chkVal = e2.getAttribute('value').trim();
+                var qry;
+                if (chkVal == "DATM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "DMS ATM LIST";
+                    qry = "vender = 2 AND div_type='ATM' ";
+                } else if (chkVal == "DCDM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "DMS CDM LIST";
+                    qry = "vender = 2 AND div_type='CDM' ";
+                } else if (chkVal == "DCRM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "DMS CRM LIST";
+                    qry = "vender = 2 AND div_type='CRM' ";
+                } else if (chkVal == "DTOT") {
+                    document.getElementById('atmstatusHeader').innerHTML = "DMS ALL LIST";
+                    qry = "vender = 2 ";
+                } else if (chkVal == "IATM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "INFORMATICS ATM LIST";
+                    qry = "vender = 3 AND div_type='ATM' ";
+                } else if (chkVal == "ICDM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "INFORMATICS CDM LIST";
+                    qry = "vender = 3 AND div_type='CDM' ";
+                } else if (chkVal == "ICRM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "INFORMATICS CRM LIST";
+                    qry = "vender = 3 AND div_type='CRM' ";
+                } else if (chkVal == "ITOT") {
+                    document.getElementById('atmstatusHeader').innerHTML = "INFORMATICS ALL LIST";
+                    qry = "vender = 3 ";
+                } else if (chkVal == "AATM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "AIKEN ATM LIST";
+                    qry = "vender = 1 AND div_type='ATM' ";
+                } else if (chkVal == "ACDM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "AIKEN CDM LIST";
+                    qry = "vender = 1 AND div_type='CDM' ";
+                } else if (chkVal == "ACRM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "AIKEN CRM LIST";
+                    qry = "vender = 1 AND div_type='CRM' ";
+                } else if (chkVal == "ATOT") {
+                    document.getElementById('atmstatusHeader').innerHTML = "AIKEN ALL LIST";
+                    qry = "vender = 1 ";
+                } else if (chkVal == "TotATM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "ALL ATM LIST";
+                    qry = "div_type='ATM' ";
+                } else if (chkVal == "TotCDM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "ALL CDM LIST";
+                    qry = "div_type='CDM' ";
+                } else if (chkVal == "TotCRM") {
+                    document.getElementById('atmstatusHeader').innerHTML = "ALL CRM LIST";
+                    qry = "div_type='CRM' ";
+                } else if (chkVal == "Tot") {
+                    document.getElementById('atmstatusHeader').innerHTML = "ALL DEVICE LIST";
+                    qry = "ALL ";
+                }
+
+                getDashboardSeparate_3(qry);
+
+
+            }
+
+            function loadDashboardSep_3(jsonData) {
+                try {
+                    const pagination = document.getElementById('pagination');
+                    const filterInput = document.getElementById('myInput');
+                    let data = jsonData.data;
+                    let filteredData = [];
+                    let currentPage = 1;
+                    const itemsPerPage = 7;
+
+                    var searchVal = document.getElementById("myInput");
+                    searchVal.value = '';
+
+                    if (jsonData.data.length > 0) {
+                        document.getElementById('cnt').innerHTML = jsonData.data.length;
+                        filterData('');
+                        displayTableData(paginateData(data, currentPage, itemsPerPage));
+                        const totalPages = Math.ceil(data.length / itemsPerPage);
+                        displayPagination(totalPages);
+                        $('#myModalViewSeparate').modal({show: true});
+                    }
+
+                    function displayTableData(unit) {
+
+                        var size = unit.length;
+                        try {
+                            var inputContainer = document.getElementById("atmstatusbody");
+                            inputContainer.innerHTML = '';
+
+                            if (size > 0) {
+                                var table = document.getElementById('atmstatus');
+                                var existingThead = table.querySelector('thead');
+                                if (existingThead) {
+                                    table.removeChild(existingThead);
+                                }
+                                var thead = document.createElement('thead');
+                                var headerRow = document.createElement('tr');
+                                var headers = ['ATM', 'BR CODE', 'BRANCH', 'LOCATION',
+                                    'PROVINCE', 'MODEL', 'EMV', 'RECYCLER', 'TYPE', 'VENDER'];
+
+                                headers.forEach(function (headerText) {
+                                    var th = document.createElement('th');
+                                    th.textContent = headerText;
+                                    headerRow.appendChild(th);
+                                });
+                                thead.appendChild(headerRow);
+                                table.appendChild(thead);
+                            }
+                            for (var i = 0; i < size; i++) {
+                                var ATM_NAME = unit[i]["ATM_NAME"];
+                                var BR_CODE = unit[i]["BR_CODE"];
+
+                                var brCde = "";
+                                if (BR_CODE) {
+                                    brCde = BR_CODE.toString();
+                                }
+
+                                if (brCde.length == 1) {
+                                    brCde = "00" + brCde;
+                                } else if (brCde.length == 2) {
+                                    brCde = "0" + brCde;
+                                } else if (brCde.length == 0) {
+                                    brCde = "___";
+                                }
+                                brCde = brCde.toString();
+
+                                var BRANCH = unit[i]["BRANCH"];
+                                var LOCATION = unit[i]["LOCATION"];
+                                var PROVINCE = unit[i]["PROVINCE"];
+                                var MODEL = unit[i]["MODEL"];
+                                var EMV = unit[i]["EMV"];
+                                if (EMV == 1) {
+                                    EMV = 'Y';
+                                } else {
+                                    EMV = 'N';
+                                }
+                                var RECYCLER = unit[i]["RECYCLER"];
+                                if (RECYCLER == 1) {
+                                    RECYCLER = 'Y';
+                                } else {
+                                    RECYCLER = 'N';
+                                }
+                                var DIV_TYPE = unit[i]["DIV_TYPE"];
+                                var VENDER = unit[i]["VENDER"];
+
+
+                                var row = document.createElement("tr");
+                                addValuetoRows(row, ATM_NAME, 'white-space: nowrap;text-align: left;');
+                                addValuetoRows(row, brCde, 'white-space: nowrap;text-align: center;');
+                                addValuetoRows(row, BRANCH, 'white-space: nowrap;text-align: left;');
+                                addValuetoRows(row, LOCATION, 'white-space: nowrap;text-align: left;');
+                                addValuetoRows(row, PROVINCE, 'white-space: nowrap;text-align: left;');
+                                addValuetoRows(row, MODEL, 'white-space: nowrap;text-align: left;');
+                                addValuetoRows(row, EMV, 'white-space: nowrap;text-align: center;');
+                                addValuetoRows(row, RECYCLER, 'white-space: nowrap;text-align: center;');
+                                addValuetoRows(row, DIV_TYPE, 'white-space: nowrap;text-align: center;');
+                                addValuetoRows(row, VENDER, 'white-space: nowrap;text-align: left;');
+                                inputContainer.appendChild(row);
+
+                            }
+
+
+                        } catch (e) {
+                            alertBox('Error! - ' + e, 'e');
+                        }
+                    }
+
+
+
+
+                    function paginateData(data, currentPage, itemsPerPage) {
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        return data.slice(startIndex, endIndex);
+                    }
+
+                    function displayPagination(totalPages) {
+
+                        pagination.innerHTML = ''; // Clear previous content                    
+
+                        const prevButton = document.createElement('button');
+                        prevButton.textContent = 'Previous';
+                        prevButton.addEventListener('click', function () {
+                            if (currentPage > 1) {
+                                currentPage--;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            }
+                        });
+                        pagination.appendChild(prevButton);
+
+                        // Display first few pages
+                        for (let i = 1; i <= Math.min(3, totalPages); i++) {
+                            const pageButton = document.createElement('button');
+                            pageButton.textContent = i;
+                            pageButton.addEventListener('click', function () {
+                                currentPage = i;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            });
+                            pagination.appendChild(pageButton);
+                        }
+
+                        const dots = document.createElement('span');
+                        dots.textContent = '     ';
+                        pagination.appendChild(dots);
+
+                        const currentPageSpan = document.createElement('span');
+                        var statusStyle = "background:#003953;border:none;color:#ffffff;padding:5px;";
+                        currentPageSpan.style = statusStyle;
+                        currentPageSpan.textContent = currentPage;
+                        pagination.appendChild(currentPageSpan);
+
+                        const dots1 = document.createElement('span');
+                        dots1.textContent = '     ';
+                        pagination.appendChild(dots1);
+
+                        // Display last few pages
+                        for (let i = Math.max(totalPages - 2, 1); i <= totalPages; i++) {
+                            const pageButton = document.createElement('button');
+                            pageButton.textContent = i;
+                            pageButton.addEventListener('click', function () {
+                                currentPage = i;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            });
+                            pagination.appendChild(pageButton);
+                        }
+
+                        const nextButton = document.createElement('button');
+                        nextButton.textContent = 'Next';
+                        nextButton.addEventListener('click', function () {
+                            if (currentPage < totalPages) {
+                                currentPage++;
+                                displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                                currentPageSpan.textContent = currentPage;
+                            }
+                        });
+                        pagination.appendChild(nextButton);
+
+                    }
+
+                    function filterData(searchTerm) {
+
+                        if (searchTerm.trim() === '') {
+                            filteredData = data;
+                        } else {
+                            filteredData = data.filter(item => {
+                                // Iterate over each item in the data array
+                                for (let key in item) {
+                                    // Convert the value of the current property to a string and then to lowercase
+                                    const value = String(item[key]).toLowerCase();
+                                    // Check if the lowercase value includes the lowercase searchTerm
+                                    if (value.includes(searchTerm.toLowerCase())) {
+                                        // If a match is found, return true to include the item in the filteredData array
+                                        return true;
+                                    }
+                                }
+                                // If no match is found for any property, return false to exclude the item from the filteredData array
+                                return false;
+                            });
+                        }
+
+                        currentPage = 1; // Reset to first page
+                        displayTableData(paginateData(filteredData, currentPage, itemsPerPage));
+                        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                        displayPagination(totalPages);
+                    }
+//
+                    filterInput.addEventListener('keyup', function () {
+                        const searchTerm = filterInput.value.trim().toLowerCase();
+                        filterData(searchTerm);
+                    });
+
+                    function addIconstoRows(faicon, title, row, iconColor) {
+                        var td = document.createElement("td");
+                        var icon = document.createElement("i");
+                        icon.classList.add("fa", faicon);
+                        icon.setAttribute("title", title);
+                        icon.style.fontSize = '25px';
+                        icon.style.color = iconColor;
+                        td.appendChild(icon);
+                        row.appendChild(td);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            }
+
+        </script>
+
+        <style>
+            .custom-modal-dialog {
+                width: fit-content; /* Adjust the width as needed */
+            }
+        </style>
+
+    </head>
+    <body onload=onPageLoad()>
+        <div class="se-pre-con"></div>
+        <div class="topnav"> </div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> ATM Dash Board</h1>
+
+        <div class="feedback-w3layouts"> 
+            <div class="container-fluid" id="mainDiv">
+
+                <div class="left-grid">
+                    <label style="min-width: fit-content;"><i class="fa fa-calendar" aria-hidden="true"></i> Last Updated :</label>
+                    <label id="lupdate"></label>
+                    <div class="clear"> </div>
+                    <!--                    <label><i class="fa fa-calendar" aria-hidden="true"></i> Last Updated(Network) :</label>
+                                        <label id="nupdate"></label>-->
+                </div>
+                <div class="right-grid">
+                    <label onclick="refresh()" style="font-size: 25px;" title="Refresh"><i class="fa fa-refresh" aria-hidden="true"></i></label>
+                    <!--<img src="images/refresh.png" alt="Refresh"  title="Refresh" onclick="refresh()">-->
+                </div>
+
+
+                <div class="clear"></div>
+
+                <div class="row">
+                    <div class="col-xs-6 dashboardDiv1 table-responsive">
+                        <h4>ATMs Up/Out Of Service</h4>
+                        <canvas id="chart1" ></canvas>                    
+                    </div>
+                    <div class="col-xs-6 dashboardDiv2 table-responsive">
+                        <h4>Up ATMs Break Down</h4>
+                        <canvas id="chart2" ></canvas> 
+                    </div>                    
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6 dashboardDiv3 table-responsive">
+                        <h4>Device List</h4>
+
+                        <div class="clear"> </div>
+
+                        <div class="container">
+                            <table class="table table-bordered table-responsive" id="atmDeviceList">
+                                <tr>
+                                    <td></td>
+                                    <th >ATM</th>
+                                    <th>CDM</th>
+                                    <th>CRM</th>
+                                    <th>TOTAL</th>
+                                </tr>
+                                <tr id="DListR2">
+                                    <th>DMS</th>                                    
+                                </tr>
+                                <tr id="DListR3">
+                                    <th>INFORMATICS</th>                                    
+                                </tr>
+                                <tr id="DListR4">
+                                    <th>AIKEN</th>                                    
+                                </tr>
+                                <!--                                <tr id="DListR5">
+                                                                    <th>NCR</th>                                    
+                                                                </tr>
+                                -->                                <tr id="DListR6">
+                                    <th>TOTAL</th>                                    
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 dashboardDiv4 table-responsive">
+                        <h4>Issues By Category</h4>
+                        <canvas id="chart3" width="500" ></canvas>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal fade " id="myModalViewSeparate" role="dialog" >
+                <div class="modal-dialog" style="min-width:fit-content;">
+                    <!-- Modal content-->
+                    <div class="modal-content custom-modal-dialog" id="modalContentConfirm">   
+                        <div class="modal-header" style="padding-bottom: 0">
+                            <h4 class="modal-title" id="atmstatusHeader"></h4>                            
+                        </div>
+
+                        <div class="modal-body" style="padding: 25px;">
+                            <label><i class="fa fa-info-circle" aria-hidden="true"></i> Count :</label>
+                            <label id="cnt"></label>
+                            <input type="text" id="myInput" placeholder="Search..." title="Search...">
+                            <div class="clear"> </div>
+                            <table class="fixed_header table table-bordered" id="atmstatus">
+                                <!--                                <thead>
+                                                                    <tr>
+                                                                        <th title="Station Name">ATM</th>
+                                                                        <th title="Branch Code">BR CODE</th>
+                                                                        <th title="Branch">BRANCH</th>
+                                                                        <th title="Location">LOCATION</th>
+                                                                        <th title="TXN Date & Time">D/T</th>
+                                                                        <th title="Cassette 1">CST1</th>
+                                                                        <th title="Cassette 2">CST2</th>
+                                                                        <th title="Cassette 3">CST3</th>
+                                                                        <th title="Cassette 4">CST4</th>
+                                                                        <th title="Receipt Printer">R/P</th>
+                                                                        <th title="Pin Pad">P/P</th>
+                                                                        <th title="Money Drawer/Curruncy Acceptor">M/D,C/A</th>
+                                                                        <th title="Card Reader">C/R</th>
+                                                                        <th title="STAT">STAT</th>
+                                                                        <th title="STATE">STATE</th>
+                                                                        <th title="Last Transaction Since" id="dwnTime" 
+                                                                            onclick="sortTable(15)" data-type="number">LST TXN SINCE &#9650</th>
+                                                                        <th style="display: none;" data-type="number"></th>
+                                                                        <th title="Last Sent SMS">SMS</th>
+                                                                    </tr>
+                                                                </thead>-->
+                                <tbody id="atmstatusbody">
+
+                                </tbody>
+                            </table>
+                            <div id="pagination"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" id="btnOkAll">OK</button>                  
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="../ATMDashBoard/js/Common.js"></script>
+        <script src="../ATMDashBoard/js/Services.js"></script>
+
+    </body>
+</html>

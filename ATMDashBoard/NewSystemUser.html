@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ATM DashBoard</title>
+        <link rel = "shortcut icon" href = "images/boc.ico"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <link href="css/font-awesome.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css" />        
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+
+        <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+        <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+
+        <script src="jQueryAssets/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/jquery.min.js" type="text/javascript"></script>
+        <script src="jQueryAssets/modernizr.js" type="text/javascript"></script>
+        <script src="jQueryAssets/bootstrap.min.js"></script>
+
+        <script>
+            $(window).on('load', function () {
+                $(".se-pre-con").fadeOut("slow");
+                $('#modelLoad').load("Modal.html");
+                try {
+                    var user = sessionStorage.getItem("UName");
+                    
+                    if (user == null) {
+                        window.location.replace("Login.html");
+                    } else {
+                        var arrayrecord_data = ['NewUser'];
+                        getUserLvl(arrayrecord_data);
+                        getUserBranch();
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e, 'e');
+                }
+            });
+
+            //load User Level
+            function loadUserLvl(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("user_lvl");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+                        option.text = unit[i]["LEVEL_DESC"];
+                        option.value = unit[i]["USER_LEVEL"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            //load User Branch
+            function loadBranch(jason_data) {
+
+                try {
+                    var unit = jason_data.data;
+                    var size = unit.length;
+                    var select = document.getElementById("user_branch");
+                    var option;
+                    for (var i = 0; i < size; i++) {
+                        option = document.createElement('option');
+//                        option.text = unit[i]["BR_CODE"] + " - " + unit[i]["BR_NAME"];
+                        option.text = unit[i]["BR_NAME"];
+                        option.value = unit[i]["BR_CODE"];
+                        select.add(option);
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+            function addUser() {
+                try {
+
+                    var canInsert = "true";
+
+                    var userName = $('#userName').val().trim().toUpperCase();
+                    if (!userName) {
+                        canInsert = "false";
+                    }
+
+                    var firstName = $('#firstName').val().trim().toUpperCase();
+                    if (!firstName) {
+                        canInsert = "false";
+                    }
+
+                    var lastName = $('#lastName').val().trim().toUpperCase();
+
+                    var userLvl = $('#user_lvl').val();
+                    if (!userLvl) {
+                        canInsert = "false";
+                    }
+
+                    var userBr = $('#user_branch').val();
+                    if (!userBr) {
+                        canInsert = "false";
+                    }
+
+
+                    var userMob = $('#mobno').val();
+                    if (!userMob) {
+                        canInsert = "false";
+                    } else if (!validatePhoneNumber(userMob)) {
+                        alertBox('&#10060 Invalid Phone Number');
+                        canInsert = "false";
+                    }
+
+                    var email = $('#email').val();
+                    if (email) {
+                        if (!validateEmail(email)) {
+                            alertBox('&#10060 Invalid Email');
+                            canInsert = "false";
+                        }
+                    }
+
+                    if (canInsert == 'true') {
+                        var arrayrecord_data = [userName, firstName, lastName, userLvl, userBr, userMob, email, sessionStorage.getItem("UId")];
+                        createNewUser(arrayrecord_data);
+                    }
+
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+
+
+            function returnCreateUserDet(jason_data) {
+
+                var unit = jason_data.data;
+                var size = unit.length;
+
+                try {
+                    if (size > 0) {
+                        if (unit[0]["RESULT"] == '1') {
+                            alertBox('&#9989 New User Created');
+                            document.getElementById('okbtn').onclick = function (e) {
+                                window.location.reload();
+                            };
+//                            window.setTimeout(function () {
+//                                window.location.reload();
+//                            }, 5000);
+
+                        } else if (unit[0]["RESULT"] == '0') {
+                            alertBox('&#10060 User Already Exists');
+                        } else {
+                            alertBox('&#10060 Error in Creating a New');
+                        }
+                    } else {
+                        alertBox('&#10060 Error in Updating');
+                    }
+
+                } catch (e) {
+                    alertBox('Error! - ' + e);
+                }
+
+            }
+
+
+        </script>
+
+
+        <script>
+// When the user scrolls down 100px from the top of the document, show the button
+            window.onscroll = function () {
+                scrollFunction();
+            };
+
+        </script>
+
+
+        <style>
+            .feedback-w3layouts input[type="text"]{
+                float: left;
+                width: auto;
+                margin-bottom: 12px;
+            }
+            .feedback-w3layouts input[type="number"]{
+                float: left;
+                width: auto;
+                margin-bottom: 12px;
+            }
+
+        </style>
+
+
+
+    </head>
+    <body>
+        <div class="se-pre-con"></div>
+
+        <!--Load Modal.html-->
+        <div id="modelLoad"></div>
+
+        <h1 id="hed"><img src="images/back.png" alt="Back"  title="Back" onclick="setBack('homeNew.html')"> Create New System User</h1>
+        <button onclick="topFunction()" id="myBtn" title="Go to top">☝</button>        
+
+        <form method="POST" id="NewUserForm" onsubmit="return false;">
+            <div class="feedback-w3layouts"> 
+                <!--<h4>User Details</h4>-->
+
+                <div class="left-grid">
+                    <label id="lbluserName" ><i class="fa fa-user" aria-hidden="true"></i> User Name * </label>
+                </div>   
+                <input type="text" id="userName" name="userName" style="text-transform:uppercase;" required>
+                <!--            <label id="lbluserNameErro" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblfirstName"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i> First Name * </label>
+                </div>
+                <input type="text" id="firstName" name="firstName" style="text-transform:uppercase;" required>
+                <!--<label id="lblfirstNameErro" style="padding-left:5px;font-style: italic;color: crimson;display: none;"> * required </label>-->
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lbllastName"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i> Last Name </label>
+                </div>
+                <input type="text" id="lastName" name="lastName" style="text-transform:uppercase;">          
+                <div class="clear"> </div>     
+
+                <div class="left-grid">
+                    <label id="lbluserlvl"><i class="fa fa-user-plus" aria-hidden="true"></i> User Level * </label>
+                </div>
+                <div class="input-group">
+                    <select class="form-control" id="user_lvl" required>
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+                <div class="clear"> </div>     
+
+                <div class="left-grid">
+                    <label id="lbluserbranch"><i class="fa fa-bank" aria-hidden="true"></i> User Branch * </label>
+                </div>
+                <div class="input-group">
+                    <select class="form-control" id="user_branch" required>
+                        <option value="" disabled selected>Please Select an Option</option>				
+                    </select>
+                </div>
+
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblMob"><i class="fa fa-phone-square" aria-hidden="true" ></i> Mobile No * </label>
+                </div>
+                <input type="number" id="mobno" name="mobno" required>      
+
+                <div class="clear"> </div>
+
+                <div class="left-grid">
+                    <label id="lblEmail"><i class="fa fa-envelope" aria-hidden="true"></i> Email </label>
+                </div>
+                <input type="text" id="email" name="email" >  
+
+                <div class="clear"> </div>
+
+                <input type="submit" value="Add New"  style="margin-top: 20px" onclick="addUser()">
+
+            </div>
+        </form>
+
+
+        <script src="../ATMDashBoard/js/User.js"></script>
+        <script src="../ATMDashBoard/js/Common.js"></script>
+
+    </body>
+
+
+</html>
