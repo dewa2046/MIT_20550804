@@ -1,11 +1,11 @@
 # MIT_20550804
 Automated Teller Machine (ATM) Monitoring Dashboard System
 
-Name 				        - D.C.Pushpakumara
-Registration Number - 2020/MIT/080
-Index Number 		    - 20550804
-Project Title 		  - Automated Teller Machine (ATM) Monitoring Dashboard System
-GitHub URL 			    - https://github.com/dewa2046/MIT_20550804.git
+* Name 				        - D.C.Pushpakumara
+* Registration Number - 2020/MIT/080
+* Index Number 		    - 20550804
+* Project Title 		  - Automated Teller Machine (ATM) Monitoring Dashboard System
+* GitHub URL 			    - https://github.com/dewa2046/MIT_20550804.git
 
 # ATM Monitoring Dashboard System
 
