@@ -49,7 +49,11 @@ This project consists of two main components:
 
 ### Installation
 
-1. Setting Up the Back-end (Java Web Service)
+#### 1. Clone the Repository
+
+* git clone https://github.com/dewa2046/MIT_20550804.git
+
+#### 2. Setting Up the Back-end (Java Web Service)
 
 * Open the project in NetBeans IDE.
 * Ensure you have Apache Tomcat installed and configured in NetBeans.
@@ -58,17 +62,17 @@ This project consists of two main components:
 * Configure database connection details in DBConnect.java (ATMDashBoardBackEnd\src\java\BackEnd).
 * Deploy the web service to Apache Tomcat from NetBeans.
 
-2. Setting Up the Frontend (HTML, CSS, JavaScript)
+#### 3. Setting Up the Frontend (HTML, CSS, JavaScript)
 
 * Create a folder named webapps in Apache Tomcat root folder and copy the ATMDashBoard folder. 
 * The frontend will make AJAX calls to the back-end deployed on Apache Tomcat.
 
-3. Setting Up the ATM Simulator
+#### 4. Setting Up the ATM Simulator
 
 * Run the ATMSimulator.exe in ATM Simulator EXE folder.
 * The simulator will generate errors and behaviours that the monitoring dashboard will display.
 
-4. Running the ATM Monitoring Dashboard
+#### 5. Running the ATM Monitoring Dashboard
 
 * Access the web application through a browser at http://localhost:8080/ATMDashBoard/Login.html.
 
